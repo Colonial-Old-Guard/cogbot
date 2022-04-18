@@ -1,0 +1,2 @@
+# cogbot
+COG Discord Bot
