@@ -67,7 +67,7 @@ async def getSteamPlusName(steam_type: type, id: str):
         # make sure to only pass the steam64 id into the getSteamProfile function...
         result = await getSteamProfile(steam_id["response"]["steamid"])
         return result
-    elif steam_type == "profile":
+    elif steam_type == "profiles":
         result = await getSteamProfile(id)
         return result
 
@@ -104,27 +104,23 @@ class VerifyCog(commands.Cog):
         # Check if the category is right and in a ticket
         if interaction.channel.category_id == 940624551946092614 and (interaction.channel.name).startswith("ticket-"):
 
-            ticket_opener = (interaction.channel.name).replace("ticket-","")
 
             # Colonial verification stuff goes here.
             if verification_type == "cog":
                 logger.info(f"Verifying as a member of COG")
-                # await interaction.response.send_message(ephemeral=True, content=f"Verify as COG. test: {ticket_opener}")
 
-                # boolbool = 0
                 urls = []
                 full_steam_profile = ""
                 member = 0
 
-                logger.debug(f"Getting urls from all messages from {ticket_opener}")
                 async for message in interaction.channel.history(limit=200):
                     # hopefully only scans messages sent by the person who opened the ticket
-                    if message.author.bot == False and message.author.name == ticket_opener:
+                    if message.author.bot == False:
                         for url in re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', message.content):
                             logger.debug(f"Found URL: {url}")
                             urls.append((url, message.author.id))
                     else:
-                        logger.debug(f"IsBot: {message.author.bot}, message author: {message.author.name}, ticket opener: {ticket_opener}")
+                        logger.debug(f"IsBot: {message.author.bot}, message author: {message.author.name}")
                 
 
 
@@ -145,13 +141,16 @@ class VerifyCog(commands.Cog):
                         steam_profile_type = o.path.rstrip("/").split("/")[1]
                         steam_profile_id = o.path.rstrip("/").split("/")[2]
 
+                        logger.debug(f"getSteamPlusName({steam_profile_type}, {steam_profile_id})")
                         full_steam_profile = await getSteamPlusName(steam_profile_type, steam_profile_id)
 
                         if full_steam_profile["response"]["players"][0]["steamid"] and full_steam_profile["response"]["players"][0]["personaname"]: break
                 
+                if len(full_steam_profile) == 0 or full_steam_profile == None:
+                    await interaction.send(ephemeral=True, content=f"No steam URLs (or valid ones) have been found.")
 
                 # hopefully this if stops most crashes :S
-                if full_steam_profile["response"]["players"][0]["steamid"] and full_steam_profile["response"]["players"][0]["personaname"] and member:
+                elif full_steam_profile["response"]["players"][0]["steamid"] and full_steam_profile["response"]["players"][0]["personaname"] and member:
                     db.add(MembersInfo(
                         discord_id = member.id,
                         discord_discriminator = str(member),
