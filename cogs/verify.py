@@ -207,8 +207,6 @@ class VerifyCog(commands.Cog):
                 await interaction.response.send_message(ephemeral=True, content=f"Verify as Warden. Command not finished yet!")
 
 
-            await interaction.send(ephemeral=True, content=verification_type)
-
             logger.info(f"Ok")
         else:
             logger.info(f"{interaction.user.nick}|{interaction.user.id} running the command from outside of the RECRUITMENT category, or not a ticket!") 
