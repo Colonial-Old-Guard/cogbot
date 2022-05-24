@@ -16,9 +16,11 @@ from sqlalchemy.exc import IntegrityError
 # from sqlalchemy.orm.exc import NoResultFound
 
 # the bot bits
+# pylint: disable=import-error
 from cogbot import logger, cogGuild, db, MembersInfo, get_steam_plus_name
 
 if __name__ == "__main__":
+    # pylint: disable=pointless-statement
     exit
 
 class VerifyCog(commands.Cog):
@@ -39,6 +41,7 @@ class VerifyCog(commands.Cog):
     )
 
 
+    # pylint: disable=too-many-locals,no-self-use,too-many-statements,too-many-branches
     async def verify(
         self,
         interaction: Integration,
@@ -70,7 +73,9 @@ class VerifyCog(commands.Cog):
                 async for message in interaction.channel.history(limit=200):
                     # hopefully only scans messages sent by the person who opened the ticket
                     if message.author.bot is False:
-                        for url in re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', \
+                        for url in re.findall(
+                            # pylint: disable=line-too-long,anomalous-backslash-in-string
+                            'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', \
                                  message.content):
                             logger.debug(f"Found URL: {url}")
                             urls.append((url, message.author.id))
@@ -98,7 +103,8 @@ class VerifyCog(commands.Cog):
                         steam_profile_type = parsed_url.path.rstrip("/").split("/")[1]
                         steam_profile_id = parsed_url.path.rstrip("/").split("/")[2]
 
-                        logger.debug(f"get_steam_plus_name({steam_profile_type}, {steam_profile_id})")
+                        logger.debug(f"get_steam_plus_name({steam_profile_type},\
+                             {steam_profile_id})")
                         full_steam_profile = await \
                             get_steam_plus_name(steam_profile_type, steam_profile_id)
 
@@ -125,7 +131,7 @@ class VerifyCog(commands.Cog):
                         last_promotion_datetime = func.now()
                     ))
 
-                    # if someone can find a way to avoid doing this get_role 
+                    # if someone can find a way to avoid doing this get_role
                     # and get_channel BS this can get cut down.
                     role_cog = interaction.guild.get_role(926172865097781299)
                     role_foxhole_verified = interaction.guild.get_role(925531185554276403)
