@@ -152,11 +152,11 @@ class VerifyCog(commands.Cog):
                             await member.edit(nick=rank_and_steam)
                         except Forbidden as error:
                             print(f"no permissions: {error}")
-                            logger.error(f"Incorrect permissions changing nick of \
+                            logger.error(f"Wrong permissions changing nick of \
                                 {member.name}|{member.id}: {error}")
                         except HTTPException as error:
                             print(f"Other error: {error}")
-                            logger.error(f"HTTP error updating nick of \
+                            logger.error(f"API error updating nick of \
                                 {member.name}|{member.id}: {error}")
 
                         try:
