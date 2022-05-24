@@ -1,11 +1,6 @@
 
 
-# steam stuff
-# Steam and rest stuff
 import datetime
-import requests
-from requests.structures import CaseInsensitiveDict
-import json
 
 from urllib.parse import urlparse
 import re
@@ -21,58 +16,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 # the bot bits
-from cogbot import bot, logger, cogGuild, steam_token, db, MembersInfo
+from cogbot import bot, logger, cogGuild, steam_token, db, MembersInfo, getSteamPlusName
 
 if __name__ == "__main__":
     exit
-
-
-
-vanity_url = 'https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/'
-steam_profile_url = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/'
-headers = CaseInsensitiveDict()
-headers["Accept"] = "application/json"
-
-async def getSteamProfile(id):
-    """
-    Returns parsed JSON response of a steam profile if provided with a valid steam id
-    """
-    logger.debug(f"Running getSteamProfile with id: {id}")
-    params = {"key": steam_token, "steamids": id}
-    resp = requests.get(steam_profile_url, headers=headers, params=params)
-    logger.debug(f"Request result: {resp}")
-    result = json.loads(resp.content)
-    logger.debug(f"Request result after json conversion: {result}")
-    return result
-
-async def getSteamID(vanity):
-    """
-    Returns parsed JSON response of a steam id if provided with a valid steam vanity name
-    """
-    logger.debug(f"Running getSteamID with vanity: {vanity}")
-    params = {"key": steam_token, "vanityurl": vanity}
-    resp = requests.get(vanity_url, headers=headers, params=params)
-    logger.debug(f"Request result: {resp}")
-    result = json.loads(resp.content)
-    logger.debug(f"Request result after json conversion: {result}")
-    return result
-
-async def getSteamPlusName(steam_type: type, id: str):
-    """
-    Returns the full steam profile of what you send in?
-    """
-    logger.debug(f"Running getSteamPlusName")
-    if steam_type == "id":
-        steam_id = await getSteamID(id)
-        # make sure to only pass the steam64 id into the getSteamProfile function...
-        result = await getSteamProfile(steam_id["response"]["steamid"])
-        return result
-    elif steam_type == "profiles":
-        result = await getSteamProfile(id)
-        return result
-
-
-
 
 class VerifyCog(commands.Cog):
 
@@ -186,8 +133,19 @@ class VerifyCog(commands.Cog):
                         except Exception as e:
                             logger.error(f"Error adding roles to {member.nick}|{member.id}: {e}")
 
+                        
+                        embed = nextcord.Embed(
+                            title="New member!",
+                            timestamp=interaction.created_at,
+                            colour=nextcord.Color.dark_green())
+                        embed.add_field(name="New Member", value=member.mention)
+                        embed.add_field(name="New Id", value=member.id)
+                        embed.add_field(name="Officer Verifying", value=interaction.user.mention)
+                        embed.add_field(name="Officer Id", value=interaction.user.id)
+
                         now = datetime.datetime.utcnow()
-                        await promotion_recruits_channel.send(f"<@{member.id}> {now.date()} {now.date() + datetime.timedelta(days=7)} verified by <@{interaction.user.id}>")
+                        # await promotion_recruits_channel.send(f"<@{member.id}> {now.date()} {now.date() + datetime.timedelta(days=7)} verified by <@{interaction.user.id}>")
+                        await promotion_recruits_channel.send(embed=embed)
                         await interaction.send(content=f"Welcome <@{member.id}>|`{member.id}` you are have been verified by <@{interaction.user.id}>|`{interaction.user.id}`!")
 
                     except IntegrityError as e:

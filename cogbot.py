@@ -18,6 +18,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+# steam / rest api stuff
+# import datetime
+import requests
+from requests.structures import CaseInsensitiveDict
+import json
+
+
 # Init logging
 logger = logging.getLogger(__name__)
 loglevel = os.getenv('LOGLEVEL', default = 'WARNING')
@@ -63,7 +70,7 @@ steam_token = os.getenv('STEAM_TOKEN')
 intents = nextcord.Intents(messages=True, guilds=True)
 intents.members = True
 # bot = nextcord.Client()
-bot = commands.Bot(command_prefix='.', Intents=intents)
+bot = commands.Bot(Intents=intents)
 
 
 class MembersInfo(Base):
@@ -102,6 +109,61 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind = engine)
 db = Session()
 
+# stuff to be imported into cogs
+vanity_url = 'https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/'
+steam_profile_url = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/'
+headers = CaseInsensitiveDict()
+headers["Accept"] = "application/json"
+
+async def getSteamProfile(id):
+    """
+    Returns parsed JSON response of a steam profile if provided with a valid steam id
+    """
+    logger.debug(f"Running getSteamProfile with id: {id}")
+    params = {"key": steam_token, "steamids": id}
+    resp = requests.get(steam_profile_url, headers=headers, params=params)
+    logger.debug(f"Request result: {resp}")
+    result = json.loads(resp.content)
+    logger.debug(f"Request result after json conversion: {result}")
+    return result
+
+async def getSteamID(vanity):
+    """
+    Returns parsed JSON response of a steam id if provided with a valid steam vanity name
+    """
+    logger.debug(f"Running getSteamID with vanity: {vanity}")
+    params = {"key": steam_token, "vanityurl": vanity}
+    resp = requests.get(vanity_url, headers=headers, params=params)
+    logger.debug(f"Request result: {resp}")
+    result = json.loads(resp.content)
+    logger.debug(f"Request result after json conversion: {result}")
+    return result
+
+async def getSteamPlusName(steam_type: type, id: str):
+    """
+    Returns the full steam profile of what you send in?
+    """
+    logger.debug(f"Running getSteamPlusName")
+    if steam_type == "id":
+        steam_id = await getSteamID(id)
+        # make sure to only pass the steam64 id into the getSteamProfile function...
+        result = await getSteamProfile(steam_id["response"]["steamid"])
+        return result
+    elif steam_type == "profiles":
+        result = await getSteamProfile(id)
+        return result
+
+def isCog(roles):
+    """
+    Returns true if in COG, feed me the member.roles snowflake.
+    """
+    roles_int = []
+    for role in roles:
+        roles_int.append(role.id)
+    if 926172865097781299 in roles_int:
+        return True
+    else:
+        return False
 # Hello world
 @bot.event
 async def on_ready():
