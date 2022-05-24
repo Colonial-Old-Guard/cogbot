@@ -147,7 +147,7 @@ class VerifyCog(commands.Cog):
                         logger.info(f"Added {member.name}|{member.id} to DB: {result}")
 
                         try:
-                            logger.info(f"Changing nick of \
+                            logger.info(f"Trying to change nick of \
                                 {member.name}|{member.id} to {rank_and_steam}")
                             await member.edit(nick=rank_and_steam)
                         except Forbidden as error:
