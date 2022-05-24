@@ -12,9 +12,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 # the bot bits
+# pylint: disable=import-error
 from cogbot import logger, cogGuild, db, MembersInfo, Ranks, get_steam_profile, is_cog
 
 if __name__ == "__main__":
+    # pylint: disable=pointless-statement
     exit
 
 def get_ranks():
@@ -89,15 +91,14 @@ class PromotionCog(commands.Cog):
         guild_ids=cogGuild,
     )
 
+    # pylint: disable=no-self-use,too-many-branches,too-many-statements,too-many-nested-blocks
     async def promotion(
         self,
         interaction: Integration,
         command: str = SlashOption(
-            name="command",
-            description="What do you want to do?",
-            required=True,
-            choices={"Status": "status", "Promote": "promote"}
-        ),
+            name="command",description="What do you want to do?",\
+                required=True,choices={"Status": "status", "Promote": "promote"}
+            ),
         member: nextcord.Member = SlashOption(
             name="member",
             description="Member for promotion",
@@ -131,10 +132,10 @@ class PromotionCog(commands.Cog):
                     title="Promotion status",
                     timestamp=interaction.created_at)
                 embed.add_field(name="Member", value=member.mention)
-                embed.add_field(name="Verified", \
-                    value=f"<t:{int(time.mktime(member_db.verified_datetime.timetuple()))}:f>")
-                embed.add_field(name="Last Promotion", \
-                    value=f"<t:{int(time.mktime(member_db.last_promotion_datetime.timetuple()))}:f>")
+                embed.add_field(name="Verified", value=\
+                    f"<t:{int(time.mktime(member_db.verified_datetime.timetuple()))}:f>")
+                embed.add_field(name="Last Promotion", value=\
+                    f"<t:{int(time.mktime(member_db.last_promotion_datetime.timetuple()))}:f>")
                 embed.add_field(name="Rank", value=member_rank[0][0])
                 embed.add_field(name="Next Promotion Rank", value=member_rank[1][0])
 
@@ -144,7 +145,8 @@ class PromotionCog(commands.Cog):
                 else:
                     await interaction.send(ephemeral=False, embed=embed)
             else:
-                await interaction.send(ephemeral=True, content=f"This member is not in COG {member.mention}")
+                await interaction.send(ephemeral=True, \
+                    content=f"This member is not in COG {member.mention}")
 
         if member and command == "promote":
             if is_cog(member.roles):
@@ -162,12 +164,14 @@ class PromotionCog(commands.Cog):
                             (rank_id = member_rank[1][2], last_promotion_datetime = func.now())
                     try:
                         logger.info(f"Promoting {member.name}|{member.id} from \
-                            {member_rank[0]}:{member_rank[0][2]} to {member_rank[1]}:{member_rank[1][2]}")
+                            {member_rank[0]}:{member_rank[0][2]} to \
+                            {member_rank[1]}:{member_rank[1][2]}")
                         db.execute(statement)
                         result = db.commit()
                         logger.info(f"Updated the database successfully {result}")
                         try:
-                            logger.info(f"Changing nick of {member.name}|{member.id} to {new_name_and_rank}")
+                            logger.info(f"Changing nick of \
+                                {member.name}|{member.id} to {new_name_and_rank}")
                             await member.edit(nick=new_name_and_rank)
 
                             embed = nextcord.Embed(
@@ -175,9 +179,10 @@ class PromotionCog(commands.Cog):
                                 timestamp=interaction.created_at,
                                 colour=nextcord.Color.gold())
                             embed.add_field(name="Member", value=member.mention)
-                            embed.add_field(name="Officer Promoting", value=interaction.user.mention)
-                            embed.add_field(name="Last Promotion", \
-                                value=f"<t:{int(time.mktime(member_db.last_promotion_datetime.timetuple()))}:f>")
+                            embed.add_field(name="Officer Promoting",\
+                                value=interaction.user.mention)
+                            embed.add_field(name="Last Promotion", value=\
+                        f"<t:{int(time.mktime(member_db.last_promotion_datetime.timetuple()))}:f>")
                             embed.add_field(name="Old Rank", value=member_rank[0][0])
                             embed.add_field(name="New Rank", value=member_rank[1][0])
 
