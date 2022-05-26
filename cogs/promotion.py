@@ -60,7 +60,9 @@ async def get_all_member_info():
     Returns all members and their ranks from the DB
     """
     result = {}
-    statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(Ranks.auto_promotion_enabled == True and MembersInfo.last_promotion_datetime >= datetime.datetime.utcnow() - datetime.timedelta(days=7))
+    statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
+        Ranks.auto_promotion_enabled is True and MembersInfo.last_promotion_datetime\
+             >= datetime.datetime.utcnow() - datetime.timedelta(days=7))
     try:
         result = db.execute(statement).all()
         return result
@@ -193,11 +195,13 @@ async def get_promotion_list(interaction: nextcord.Integration):
     promotion_date = []
 
     for member, rank in await get_all_member_info():
-        # fuck = f"<@{member.discord_id}", f"<t:{int(time.mktime(member.last_promotion_datetime.timetuple()))}:f>", rank.rank_name
+        # fuck = f"<@{member.discord_id}",\
+        # f"<t:{int(time.mktime(member.last_promotion_datetime.timetuple()))}:f>", rank.rank_name
 
         username.append(f"<@{member.discord_id}")
         rank_n.append(rank.rank_name)
-        promotion_date.append(f"<t:{int(time.mktime(member.last_promotion_datetime.timetuple()))}:f>")
+        promotion_date.append(
+            f"<t:{int(time.mktime(member.last_promotion_datetime.timetuple()))}:f>")
         # member_list.append(fuck)
 
 
@@ -219,7 +223,8 @@ async def get_promotion_list(interaction: nextcord.Integration):
     # for member_details in member_list:
     #     embed.add_field(name="Username", value=f"<@{member_details[0]}>")
     #     embed.add_field(name="Rank", value=member_details[2])
-    #     embed.add_field(name="Promotion Date",value=f"<t:{int(time.mktime(member_details[1].timetuple()))}:f>")
+    #     embed.add_field(name="Promotion Date",\
+    # value=f"<t:{int(time.mktime(member_details[1].timetuple()))}:f>")
 
     return embed
 
