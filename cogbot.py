@@ -176,7 +176,7 @@ async def get_steam_plus_name(steam_type: type, steam_id_or_vanity: str):
         result = await get_steam_profile(steam_id_or_vanity)
         return result
 
-def is_cog(roles):
+def is_cog(roles: list):
     """
     Returns true if in COG, feed me the member.roles snowflake.
     """

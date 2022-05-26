@@ -147,29 +147,29 @@ class VerifyCog(commands.Cog):
                         logger.info(f"Added {member.name}|{member.id} to DB: {result}")
 
                         try:
-                            logger.info(f"Trying to change nick of \
-                                {member.name}|{member.id} to {rank_and_steam}")
+                            logger.info(f"Changing nick of "
+                                f"{member.name}|{member.id} to {rank_and_steam}")
                             await member.edit(nick=rank_and_steam)
                         except Forbidden as error:
                             print(f"no permissions: {error}")
-                            logger.error(f"Wrong permissions changing nick of \
-                                {member.name}|{member.id}: {error}")
+                            logger.error(f"Incorrect permissions changing nick of "
+                                f"{member.name}|{member.id}: {error}")
                         except HTTPException as error:
                             print(f"Other error: {error}")
-                            logger.error(f"API error updating nick of \
-                                {member.name}|{member.id}: {error}")
+                            logger.error(f"HTTP error updating nick of "
+                                f"{member.name}|{member.id}: {error}")
 
                         try:
                             logger.info(f"Adding roles to {member.nick}|{member.id}")
                             await member.add_roles(role_cog, role_foxhole_verified)
                         except Forbidden as error:
                             print(f"no permissions: {error}")
-                            logger.error(f"Incorrect permissions adding roles to \
-                                {member.name}|{member.id}: {error}")
+                            logger.error(f"Incorrect permissions adding roles to "
+                                f"{member.name}|{member.id}: {error}")
                         except HTTPException as error:
                             print(f"Other error: {error}")
-                            logger.error(f"HTTP error adding roles to \
-                                {member.name}|{member.id}: {error}")
+                            logger.error(f"HTTP error adding roles to "
+                                f"{member.name}|{member.id}: {error}")
 
 
 
@@ -187,38 +187,39 @@ class VerifyCog(commands.Cog):
                         # {now.date() + datetime.timedelta(days=7)} \
                         # verified by <@{interaction.user.id}>")
                         await promotion_recruits_channel.send(embed=embed)
-                        await interaction.send(content=f"Welcome <@{member.id}>\
-                            |`{member.id}` you are have been verified by \
-                                <@{interaction.user.id}>|`{interaction.user.id}`!")
+                        await interaction.send(content=
+                        f"Welcome <@{member.id}> |`{member.id}` you are have been verified by "
+                        f"<@{interaction.user.id}>|`{interaction.user.id}`!")
 
                     except IntegrityError as error:
                         db.rollback()
                         logger.error(f"Error adding {member.id} to db: {error}")
-                        await interaction.send(ephemeral=True, \
+                        await interaction.send(ephemeral=True,
                             content=f"Error adding {member.name} to db: {error.orig}")
 
 
             # Ally verification goes here
             if verification_type == "ally":
                 logger.info("Verifying as an Ally")
-                await interaction.response.send_message(ephemeral=True, \
+                await interaction.response.send_message(ephemeral=True,
                     content="Verify as Ally. Command not finished yet!")
 
             # Warden verification goes nowhere
             if verification_type == "blue":
                 logger.info("Verifying as a Warden")
-                await interaction.response.send_message(ephemeral=True, \
+                await interaction.response.send_message(ephemeral=True,
                     content="Verify as Warden. Command not finished yet!")
 
 
             logger.info("Ok")
         else:
-            logger.info(f"{interaction.user.nick}|\
-                {interaction.user.id} running the command from outside\
-                     of the RECRUITMENT category, or not a ticket!")
-            await interaction.response.send_message(ephemeral=True, \
-                content="This command can only be run inside the \
-                    RECRUITMENT category, and a ticket!")
+            logger.info(
+                f"{interaction.user.nick}|{interaction.user.id} running "
+                f"the command from outside of the RECRUITMENT category, "
+                f"or not a ticket!")
+            await interaction.response.send_message(ephemeral=True,
+                content="This command can only be run inside the "
+                    "RECRUITMENT category, and a ticket!")
 
 def setup(bot):
     """
