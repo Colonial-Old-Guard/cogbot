@@ -61,13 +61,8 @@ async def get_all_member_info():
     """
     result = {}
     statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
-<<<<<<< HEAD
         MembersInfo.last_promotion_datetime <= datetime.datetime.utcnow() \
-        - datetime.timedelta(days=7))
-=======
-        Ranks.auto_promotion_enabled is True and MembersInfo.last_promotion_datetime\
-             >= datetime.datetime.utcnow() - datetime.timedelta(days=7))
->>>>>>> main
+        - datetime.timedelta(days=7)).order_by(Ranks.rank_weight, MembersInfo.last_promotion_datetime)
     try:
         result = db.execute(statement).all()
         return result
@@ -192,7 +187,7 @@ async def promote_member(member, interaction: nextcord.Interaction, hidden: bool
 
 async def get_promotion_list(interaction: nextcord.Integration):
     """
-    Returns an embed of current users, ranks, and last promotion date.
+    Returns a dict of embeds of current users, ranks, and last promotion date.
     """
     username = {}
     rank_n = {}
@@ -212,7 +207,7 @@ async def get_promotion_list(interaction: nextcord.Integration):
             rank_n[index_counter] = []
             promotion_date[index_counter] = []
             embed[index_counter] = nextcord.Embed(
-                title="Promotion / Members List",
+                title=f"Promotion / Members List {index_counter}",
                 timestamp=interaction.created_at,
                 colour=nextcord.Color.purple())
 
@@ -274,15 +269,6 @@ class PromotionCog(commands.Cog):
         logger.info(f"Running promotion. command: {command} member: {member} hidden: {hidden}")
 
 
-<<<<<<< HEAD
-=======
-        # if is_cog(member.roles) is False:
-        #     # Check if mentioned user has the COG role, exit if not
-        #     await interaction.send(ephemeral=True, \
-        #         content=f"This user is not in COG {member.mention}")
-        #     return
-
->>>>>>> main
         if member and command == "status":
             if is_cog(member.roles) is False:
                 # Check if mentioned user has the COG role, exit if not
@@ -295,25 +281,13 @@ class PromotionCog(commands.Cog):
             else:
                 await interaction.send(ephemeral=False,\
                     embed=get_member_promotion_status(member.id, member, interaction))
-<<<<<<< HEAD
-=======
 
         if command == 'list':
-            dong = await get_promotion_list(interaction)
-            logger.error(dong)
-            await interaction.send(ephemeral=True, embed=dong)
->>>>>>> main
+            promotion_list_embeds = await get_promotion_list(interaction)
+            logger.error(promotion_list_embeds)
+            for key in promotion_list_embeds:
+                await interaction.send(ephemeral=True, embed=promotion_list_embeds[key])
 
-        if command == 'list':
-            promotion_list = await get_promotion_list(interaction)
-            logger.error(promotion_list)
-            for key in promotion_list:
-                await interaction.send(ephemeral=True, embed=promotion_list[key])
-
-<<<<<<< HEAD
-
-=======
->>>>>>> main
         if member and command == "promote":
             if is_cog(member.roles) is False:
                 # Check if mentioned user has the COG role, exit if not
