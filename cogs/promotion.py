@@ -62,7 +62,8 @@ async def get_all_member_info():
     result = {}
     statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
         MembersInfo.last_promotion_datetime <= datetime.datetime.utcnow() \
-        - datetime.timedelta(days=7)).order_by(Ranks.rank_weight, MembersInfo.last_promotion_datetime)
+        - datetime.timedelta(days=7)).order_by(
+            Ranks.rank_weight, MembersInfo.last_promotion_datetime)
     try:
         result = db.execute(statement).all()
         return result
