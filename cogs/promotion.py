@@ -61,8 +61,9 @@ async def get_all_member_info():
     """
     result = {}
     statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
-        Ranks.auto_promotion_enabled is True and MembersInfo.last_promotion_datetime\
-             >= datetime.datetime.utcnow() - datetime.timedelta(days=7))
+        MembersInfo.last_promotion_datetime <= datetime.datetime.utcnow() \
+        - datetime.timedelta(days=7)).order_by(
+            Ranks.rank_weight, MembersInfo.last_promotion_datetime)
     try:
         result = db.execute(statement).all()
         return result
@@ -187,44 +188,44 @@ async def promote_member(member, interaction: nextcord.Interaction, hidden: bool
 
 async def get_promotion_list(interaction: nextcord.Integration):
     """
-    Returns an embed of current users, ranks, and last promotion date.
+    Returns a dict of embeds of current users, ranks, and last promotion date.
     """
-    # member_list = []
-    username = []
-    rank_n = []
-    promotion_date = []
+    username = {}
+    rank_n = {}
+    promotion_date = {}
+    embed = {}
+    i = 0
+    index_counter = 0
+    index2_counter = 0
 
     for member, rank in await get_all_member_info():
-        # fuck = f"<@{member.discord_id}",\
-        # f"<t:{int(time.mktime(member.last_promotion_datetime.timetuple()))}:f>", rank.rank_name
 
-        username.append(f"<@{member.discord_id}")
-        rank_n.append(rank.rank_name)
-        promotion_date.append(
+        if i > 21:
+            index_counter += 1
+            i = 0
+        if i == 0:
+            username[index_counter] = []
+            rank_n[index_counter] = []
+            promotion_date[index_counter] = []
+            embed[index_counter] = nextcord.Embed(
+                title=f"Promotion / Members List {index_counter}",
+                timestamp=interaction.created_at,
+                colour=nextcord.Color.purple())
+
+        username[index_counter].append(f"<@{member.discord_id}>")
+        rank_n[index_counter].append(rank.rank_name)
+        promotion_date[index_counter].append(
             f"<t:{int(time.mktime(member.last_promotion_datetime.timetuple()))}:f>")
-        # member_list.append(fuck)
 
+        i += 1
 
-    embed = nextcord.Embed(
-        title="Promotion / Members List",
-        timestamp=interaction.created_at,
-        colour=nextcord.Color.purple())
-    # embed.author(interaction.user.mention)
-    print(len(username))
-    print(len(rank_n))
-    print(len(promotion_date))
-    embed.set_author(name=interaction.user.name)
-    embed.add_field(name="Username", value=username)
-    embed.add_field(name="Rank", value=rank_n)
-    embed.add_field(name="Promotion Date", value=promotion_date)
-
-        # print(result)
-
-    # for member_details in member_list:
-    #     embed.add_field(name="Username", value=f"<@{member_details[0]}>")
-    #     embed.add_field(name="Rank", value=member_details[2])
-    #     embed.add_field(name="Promotion Date",\
-    # value=f"<t:{int(time.mktime(member_details[1].timetuple()))}:f>")
+    while index2_counter <= index_counter:
+        embed[index2_counter].set_author(name=interaction.user.name)
+        embed[index2_counter].add_field(name="Username", value='\n'.join(username[index2_counter]))
+        embed[index2_counter].add_field(name="Rank", value='\n'.join(rank_n[index2_counter]))
+        embed[index2_counter].add_field(
+            name="Promotion Date", value='\n'.join(promotion_date[index2_counter]))
+        index2_counter += 1
 
     return embed
 
@@ -269,12 +270,6 @@ class PromotionCog(commands.Cog):
         logger.info(f"Running promotion. command: {command} member: {member} hidden: {hidden}")
 
 
-        # if is_cog(member.roles) is False:
-        #     # Check if mentioned user has the COG role, exit if not
-        #     await interaction.send(ephemeral=True, \
-        #         content=f"This user is not in COG {member.mention}")
-        #     return
-
         if member and command == "status":
             if is_cog(member.roles) is False:
                 # Check if mentioned user has the COG role, exit if not
@@ -289,10 +284,10 @@ class PromotionCog(commands.Cog):
                     embed=get_member_promotion_status(member.id, member, interaction))
 
         if command == 'list':
-            dong = await get_promotion_list(interaction)
-            logger.error(dong)
-            await interaction.send(ephemeral=True, embed=dong)
-
+            promotion_list_embeds = await get_promotion_list(interaction)
+            logger.error(promotion_list_embeds)
+            for key in promotion_list_embeds:
+                await interaction.send(ephemeral=True, embed=promotion_list_embeds[key])
 
         if member and command == "promote":
             if is_cog(member.roles) is False:
