@@ -77,11 +77,13 @@ steam_token = os.getenv('STEAM_TOKEN')
 
 # Init bot
 intents = nextcord.Intents(messages=True, guilds=True)
+# pylint: disable=assigning-non-slot
 intents.members = True
 # bot = nextcord.Client()
 bot = commands.Bot(Intents=intents)
 
 
+# pylint: disable=too-few-public-methods
 class MembersInfo(Base):
     """
     Member class for DB
@@ -99,6 +101,7 @@ class MembersInfo(Base):
     verified_datetime = Column(DateTime(timezone=True))
     last_promotion_datetime = Column(DateTime(timezone=True))
 
+# pylint: disable=too-few-public-methods
 class Ranks(Base):
     """
     Ranks class for DB
@@ -111,6 +114,7 @@ class Ranks(Base):
     staff = Column(Boolean, nullable=False)
     auto_promotion_enabled = Column(Boolean, nullable=False)
 
+# pylint: disable=too-few-public-methods
 class PromotionRecomendation(Base):
     """
     Promotion class for DB
@@ -172,7 +176,7 @@ async def get_steam_plus_name(steam_type: type, steam_id_or_vanity: str):
         result = await get_steam_profile(steam_id_or_vanity)
         return result
 
-def is_cog(roles):
+def is_cog(roles: list):
     """
     Returns true if in COG, feed me the member.roles snowflake.
     """
@@ -191,6 +195,7 @@ async def on_ready():
 
 # load cogs
 @bot.command()
+# pylint: disable=unused-argument
 async def load(ctx, extension):
     """
     Load cogs
@@ -199,6 +204,7 @@ async def load(ctx, extension):
     bot.load_extension(f'cogs.{extension}')
 
 @bot.command()
+# pylint: disable=unused-argument
 async def unload(ctx, extension):
     """
     Unload cogs

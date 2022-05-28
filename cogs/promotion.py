@@ -61,8 +61,13 @@ async def get_all_member_info():
     """
     result = {}
     statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
+<<<<<<< HEAD
         MembersInfo.last_promotion_datetime <= datetime.datetime.utcnow() \
         - datetime.timedelta(days=7))
+=======
+        Ranks.auto_promotion_enabled is True and MembersInfo.last_promotion_datetime\
+             >= datetime.datetime.utcnow() - datetime.timedelta(days=7))
+>>>>>>> main
     try:
         result = db.execute(statement).all()
         return result
@@ -269,6 +274,15 @@ class PromotionCog(commands.Cog):
         logger.info(f"Running promotion. command: {command} member: {member} hidden: {hidden}")
 
 
+<<<<<<< HEAD
+=======
+        # if is_cog(member.roles) is False:
+        #     # Check if mentioned user has the COG role, exit if not
+        #     await interaction.send(ephemeral=True, \
+        #         content=f"This user is not in COG {member.mention}")
+        #     return
+
+>>>>>>> main
         if member and command == "status":
             if is_cog(member.roles) is False:
                 # Check if mentioned user has the COG role, exit if not
@@ -281,6 +295,14 @@ class PromotionCog(commands.Cog):
             else:
                 await interaction.send(ephemeral=False,\
                     embed=get_member_promotion_status(member.id, member, interaction))
+<<<<<<< HEAD
+=======
+
+        if command == 'list':
+            dong = await get_promotion_list(interaction)
+            logger.error(dong)
+            await interaction.send(ephemeral=True, embed=dong)
+>>>>>>> main
 
         if command == 'list':
             promotion_list = await get_promotion_list(interaction)
@@ -288,7 +310,10 @@ class PromotionCog(commands.Cog):
             for key in promotion_list:
                 await interaction.send(ephemeral=True, embed=promotion_list[key])
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
         if member and command == "promote":
             if is_cog(member.roles) is False:
                 # Check if mentioned user has the COG role, exit if not
