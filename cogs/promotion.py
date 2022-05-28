@@ -8,7 +8,7 @@ from nextcord.ext import commands
 from nextcord import Integration, SlashOption, Forbidden, HTTPException
 
 # sqlalchemy
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, update, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -28,13 +28,7 @@ def get_ranks():
     statement = select(Ranks.rank_name, Ranks.rank_weight, Ranks.id, \
         Ranks.auto_promotion_enabled).order_by(Ranks.rank_weight)
     try:
-        # result = db.execute(statement).mappings().all()
         result = db.execute(statement).all()
-        # for row in db.execute(statement):
-        #     result[row.rank_weight] = {'rank': row.rank_name, \
-        # 'auto_promotion': row.auto_promotion_enabled, 'id': row.id}
-        #     # result =
-        #     # result.append(row)
         return result
     except IntegrityError as error:
         logger.error(f"Error: {error}")
@@ -60,9 +54,11 @@ async def get_all_member_info():
     Returns all members and their ranks from the DB
     """
     result = {}
-    statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
-        MembersInfo.last_promotion_datetime <= datetime.datetime.utcnow() \
-        - datetime.timedelta(days=7)).order_by(
+    # Pylint does not like == False, but that's just how it works
+    # pylint: disable=singleton-comparison
+    statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(and_(
+        MembersInfo.last_promotion_datetime <= \
+        datetime.datetime.utcnow() - datetime.timedelta(days=7),Ranks.staff == False)).order_by(
             Ranks.rank_weight, MembersInfo.last_promotion_datetime)
     try:
         result = db.execute(statement).all()
