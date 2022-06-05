@@ -1,6 +1,5 @@
 """ Promotion cog """
 import time
-import datetime
 
 # nextcord stuff
 import nextcord
@@ -14,7 +13,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 # the bot bits
 # pylint: disable=import-error
-from cogbot import logger, cogGuild, db, MembersInfo, Ranks, get_steam_profile, is_cog
+from cogbot import logger, cogGuild, db, MembersInfo, Ranks, get_steam_profile, is_cog, get_all_member_info
 
 if __name__ == "__main__":
     # pylint: disable=pointless-statement
@@ -50,22 +49,6 @@ def member_info(discord_id):
             (MembersInfo.discord_id == discord_id)).one_or_none()
         if not result is None:
             result = result[0]
-        return result
-    except NoResultFound as error:
-        logger.error("No results found: %s", error)
-        return None
-
-async def get_all_member_info():
-    """
-    Returns all members and their ranks from the DB
-    """
-    result = {}
-    statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
-        MembersInfo.last_promotion_datetime <= datetime.datetime.utcnow() \
-        - datetime.timedelta(days=7)).order_by(
-            Ranks.rank_weight, MembersInfo.last_promotion_datetime)
-    try:
-        result = db.execute(statement).all()
         return result
     except NoResultFound as error:
         logger.error("No results found: %s", error)

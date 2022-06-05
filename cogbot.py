@@ -2,6 +2,7 @@
 
 import os
 import logging
+import datetime
 
 # steam / rest api stuff
 # import datetime
@@ -16,10 +17,11 @@ from nextcord.ext import commands
 
 # sqlalchemy
 from sqlalchemy import create_engine, Column, String, Text, Integer, \
-  BigInteger, Boolean, DateTime, func
+  BigInteger, Boolean, DateTime, func, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 
 # dotenv
 from dotenv import load_dotenv
@@ -184,6 +186,22 @@ def is_cog(roles: list):
     for role in roles:
         roles_int.append(role.id)
     return bool(926172865097781299 in roles_int)
+
+async def get_all_member_info():
+    """
+    Returns all members and their ranks from the DB
+    """
+    result = {}
+    statement = select(MembersInfo, Ranks).filter(MembersInfo.rank_id==Ranks.id).where(
+        MembersInfo.last_promotion_datetime <= datetime.datetime.utcnow() \
+        - datetime.timedelta(days=7)).order_by(
+            Ranks.rank_weight, MembersInfo.last_promotion_datetime)
+    try:
+        result = db.execute(statement).all()
+        return result
+    except NoResultFound as error:
+        logger.error("No results found: %s", error)
+        return None
 
 # Hello world
 @bot.event

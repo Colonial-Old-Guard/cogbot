@@ -75,7 +75,7 @@ class VerifyCog(commands.Cog):
                     if message.author.bot is False:
                         for url in re.findall(
                             # pylint: disable=line-too-long,anomalous-backslash-in-string
-                            'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', \
+                            'http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))\w{0,}.\w{0,}\/\w{0,}\/\w{0,}', \
                                  message.content):
                             logger.debug(f"Found URL: {url}")
                             urls.append((url, message.author.id))
@@ -188,7 +188,7 @@ class VerifyCog(commands.Cog):
                         # verified by <@{interaction.user.id}>")
                         await promotion_recruits_channel.send(embed=embed)
                         await interaction.send(content=
-                        f"Welcome <@{member.id}> |`{member.id}` you are have been verified by "
+                        f"Welcome <@{member.id}>|`{member.id}` you are have been verified by "
                         f"<@{interaction.user.id}>|`{interaction.user.id}`!")
 
                     except IntegrityError as error:
