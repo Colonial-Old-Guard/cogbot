@@ -7,7 +7,7 @@ from nextcord.ext import commands
 from nextcord import Integration, SlashOption, Forbidden, HTTPException
 
 # sqlalchemy
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, update, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -27,13 +27,7 @@ def get_ranks():
     statement = select(Ranks.rank_name, Ranks.rank_weight, Ranks.id, \
         Ranks.auto_promotion_enabled).order_by(Ranks.rank_weight)
     try:
-        # result = db.execute(statement).mappings().all()
         result = db.execute(statement).all()
-        # for row in db.execute(statement):
-        #     result[row.rank_weight] = {'rank': row.rank_name, \
-        # 'auto_promotion': row.auto_promotion_enabled, 'id': row.id}
-        #     # result =
-        #     # result.append(row)
         return result
     except IntegrityError as error:
         logger.error(f"Error: {error}")
