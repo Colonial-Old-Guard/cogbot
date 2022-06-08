@@ -7,13 +7,14 @@ from nextcord.ext import commands
 from nextcord import Integration, SlashOption, Forbidden, HTTPException
 
 # sqlalchemy
-from sqlalchemy import func, select, update, and_
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 # the bot bits
 # pylint: disable=import-error
-from cogbot import logger, cogGuild, db, MembersInfo, Ranks, get_steam_profile, is_cog, get_all_member_info
+from cogbot import logger, cogGuild, db, MembersInfo, Ranks, get_steam_profile, \
+    is_cog, get_all_member_info
 
 if __name__ == "__main__":
     # pylint: disable=pointless-statement
@@ -93,7 +94,7 @@ def get_member_promotion_status(discord_id: int, member, interaction: nextcord.I
 
 async def promote_member(member, interaction: nextcord.Interaction, hidden: bool):
     """
-    Promotoes a member, and returns an embed with the details.
+    Promotes a member, and returns an embed with the details.
     Status:
     0 = Member promoted
     1 = Member not eligible for promotion
