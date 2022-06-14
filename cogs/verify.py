@@ -135,9 +135,10 @@ class VerifyCog(commands.Cog):
                     # and get_channel BS this can get cut down.
                     role_cog = interaction.guild.get_role(926172865097781299)
                     role_foxhole_verified = interaction.guild.get_role(925531185554276403)
+                    role_foxhole = interaction.guild.get_role(925531141128196107)
                     promotion_recruits_channel = \
                         interaction.guild.get_channel(971763222937993236)
-                    rank_and_steam = "Rec. | " + \
+                    rank_and_steam = \
                         full_steam_profile["response"]["players"][0]["personaname"]
 
                     try:
@@ -161,7 +162,7 @@ class VerifyCog(commands.Cog):
 
                         try:
                             logger.info(f"Adding roles to {member.nick}|{member.id}")
-                            await member.add_roles(role_cog, role_foxhole_verified)
+                            await member.add_roles(role_cog, role_foxhole_verified, role_foxhole)
                         except Forbidden as error:
                             print(f"no permissions: {error}")
                             logger.error(f"Incorrect permissions adding roles to "
