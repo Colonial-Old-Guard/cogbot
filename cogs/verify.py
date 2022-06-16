@@ -1,6 +1,6 @@
 """ Verify cog """
 
-# import datetime
+# pylint: disable=duplicate-code
 
 from urllib.parse import urlparse
 import re
