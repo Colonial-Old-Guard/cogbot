@@ -15,14 +15,14 @@ if __name__ == "__main__":
 
 class LogiCog(commands.Cog):
     """
-    Promotions cog
+    Logistics cog
     """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @nextcord.slash_command(
-        name="promotion",
-        description="Promote a member",
+        name="logi",
+        description="Grant someone logi roles.",
         guild_ids=cogGuild,
     )
 
