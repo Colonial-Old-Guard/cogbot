@@ -187,6 +187,15 @@ def is_cog(roles: list):
         roles_int.append(role.id)
     return bool(926172865097781299 in roles_int)
 
+def is_logi_lead(member):
+    """
+    Returns true if a the member is a COG Logi lead.
+    Feed me the member snowflake.
+    """
+    # 49 = 136929317316853760, Ulune = 606234691531702324, pesus = 145420538725007361, davey = 148818653452697600
+    logi_lead_list = [136929317316853760, 606234691531702324, 145420538725007361, 148818653452697600]
+    return bool(member.id in logi_lead_list)
+
 async def get_all_member_info():
     """
     Returns all members and their ranks from the DB

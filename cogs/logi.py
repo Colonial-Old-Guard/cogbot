@@ -7,7 +7,7 @@ from nextcord import Integration, SlashOption, Forbidden, HTTPException
 
 # the bot bits
 # pylint: disable=import-error
-from cogbot import logger, cogGuild
+from cogbot import logger, cogGuild, is_logi_lead
 
 if __name__ == "__main__":
     # pylint: disable=pointless-statement
@@ -55,9 +55,11 @@ class LogiCog(commands.Cog):
         """ Logi stuff """
         logger.info("Running logi command")
 
+
+
         logi_role = interaction.guild.get_role(role)
 
-        if add_or_remove == "add":
+        if add_or_remove == "add" and is_logi_lead(interaction.user):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.add_roles(logi_role)
@@ -70,7 +72,7 @@ class LogiCog(commands.Cog):
                 logger.error(f"HTTP error adding roles to "
                     f"{member.name}|{member.id}: {error}")
 
-        if add_or_remove == "remove":
+        if add_or_remove == "remove" and is_logi_lead(interaction.user):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.remove_roles(logi_role)
