@@ -36,7 +36,7 @@ class LogiCog(commands.Cog):
             choices={"Add": "add", "Remove": "remove"},
             required=True
             ),
-        role: int = SlashOption(
+        role: str = SlashOption(
             name="role",
             description="What role?",
             choices={
@@ -63,6 +63,7 @@ class LogiCog(commands.Cog):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.add_roles(logi_role)
+                await interaction.send(ephemeral=True, content=f"Granted {member.nick} the {logi_role.name} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
@@ -76,6 +77,7 @@ class LogiCog(commands.Cog):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.remove_roles(logi_role)
+                await interaction.send(ephemeral=True, content=f"Removed {member.nick} from the {logi_role.name} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
