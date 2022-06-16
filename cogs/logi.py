@@ -55,13 +55,19 @@ class LogiCog(commands.Cog):
         """ Logi stuff """
         logger.info("Running logi command")
 
+        logi_log_channel = interaction.guild.get_channel(986978973382758492)
+
 
         logi_role = interaction.guild.get_role(int(role))
 
         if add_or_remove == "add" and is_logi_lead(interaction.user):
             try:
-                logger.info(f"Adding roles to {member.nick}|{member.id}")
+                logger.info(f"{interaction.user.nick}|{interaction.user.id}"\
+                    f" adding {logi_role.name} to {member.nick}|{member.id}")
                 await member.add_roles(logi_role)
+                await logi_log_channel.send(
+                content=f"{interaction.user.mention} granted {logi_role.name} to {member.mention}"
+                )
                 await interaction.response.send_message(ephemeral=True,
                     content=f"Granted {member.mention} the {logi_role.name} role")
             except Forbidden as error:
@@ -75,8 +81,12 @@ class LogiCog(commands.Cog):
 
         if add_or_remove == "remove" and is_logi_lead(interaction.user):
             try:
-                logger.info(f"Adding roles to {member.nick}|{member.id}")
+                logger.info(f"{interaction.user.nick}|{interaction.user.id}"\
+                    f" removing roles to {member.nick}|{member.id}")
                 await member.remove_roles(logi_role)
+                await logi_log_channel.send(
+                content=f"{interaction.user.mention} removed {logi_role.name} to {member.mention}"
+                )
                 await interaction.response.send_message(ephemeral=True,
                     content=f"Removed {member.mention} from the {logi_role.name} role")
             except Forbidden as error:
