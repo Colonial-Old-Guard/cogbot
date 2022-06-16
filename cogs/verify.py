@@ -36,11 +36,8 @@ class VerifyCog(commands.Cog):
     @nextcord.slash_command(
         name="verify",
         description="Verify a member",
-        default_permission=False,
         guild_ids=cogGuild,
     )
-
-
     # pylint: disable=too-many-locals,no-self-use,too-many-statements,too-many-branches
     async def verify(
         self,
@@ -163,7 +160,12 @@ class VerifyCog(commands.Cog):
 
                         try:
                             logger.info(f"Adding roles to {member.nick}|{member.id}")
-                            await member.add_roles(role_cog, role_foxhole_verified, role_foxhole, role_medals_break)
+                            await member.add_roles(
+                                role_cog,
+                                role_foxhole_verified,
+                                role_foxhole,
+                                role_medals_break
+                                )
                         except Forbidden as error:
                             print(f"no permissions: {error}")
                             logger.error(f"Incorrect permissions adding roles to "

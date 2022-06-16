@@ -217,7 +217,6 @@ class PromotionCog(commands.Cog):
     @nextcord.slash_command(
         name="promotion",
         description="Promote a member",
-        default_permission=False,
         guild_ids=cogGuild,
     )
 
