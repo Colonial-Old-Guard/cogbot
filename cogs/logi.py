@@ -40,9 +40,9 @@ class LogiCog(commands.Cog):
             name="role",
             description="What role?",
             choices={
-                "Logistics High Value": 925770000067858442,
-                "Logistics Main": 925720078027223070,
-                "Logistics Newbie": 980563823226404895
+                "Logistics High Value": "925770000067858442",
+                "Logistics Main": "925720078027223070",
+                "Logistics Newbie": "980563823226404895"
                 },
             required=True
             ),
