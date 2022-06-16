@@ -66,10 +66,10 @@ class LogiCog(commands.Cog):
                     f" adding {logi_role.name} to {member.nick}|{member.id}")
                 await member.add_roles(logi_role)
                 await logi_log_channel.send(
-                content=f"{interaction.user.mention} granted {logi_role.name} to {member.mention}"
+                content=f"{interaction.user.mention} granted {logi_role.mention} to {member.mention}"
                 )
                 await interaction.response.send_message(ephemeral=True,
-                    content=f"Granted {member.mention} the {logi_role.name} role")
+                    content=f"Granted {member.mention} the {logi_role.mention} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
@@ -85,10 +85,10 @@ class LogiCog(commands.Cog):
                     f" removing roles to {member.nick}|{member.id}")
                 await member.remove_roles(logi_role)
                 await logi_log_channel.send(
-                content=f"{interaction.user.mention} removed {logi_role.name} to {member.mention}"
+                content=f"{interaction.user.mention} removed {logi_role.mention} to {member.mention}"
                 )
                 await interaction.response.send_message(ephemeral=True,
-                    content=f"Removed {member.mention} from the {logi_role.name} role")
+                    content=f"Removed {member.mention} from  the {logi_role.mention} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
