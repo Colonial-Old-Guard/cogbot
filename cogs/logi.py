@@ -56,15 +56,14 @@ class LogiCog(commands.Cog):
         logger.info("Running logi command")
 
 
-
-        logi_role = interaction.guild.get_role(role)
+        logi_role = interaction.guild.get_role(int(role))
 
         if add_or_remove == "add" and is_logi_lead(interaction.user):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.add_roles(logi_role)
-                await interaction.send(ephemeral=True,
-                    content=f"Granted {member.nick} the {logi_role.name} role")
+                await interaction.response.send_message(ephemeral=True,
+                    content=f"Granted {member.mention} the {logi_role.name} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
@@ -78,8 +77,8 @@ class LogiCog(commands.Cog):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.remove_roles(logi_role)
-                await interaction.send(ephemeral=True,
-                    content=f"Removed {member.nick} from the {logi_role.name} role")
+                await interaction.response.send_message(ephemeral=True,
+                    content=f"Removed {member.mention} from the {logi_role.name} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
