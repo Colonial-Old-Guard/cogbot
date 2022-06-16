@@ -65,8 +65,8 @@ class LogiCog(commands.Cog):
                 logger.info(f"{interaction.user.nick}|{interaction.user.id}"\
                     f" adding {logi_role.name} to {member.nick}|{member.id}")
                 await member.add_roles(logi_role)
-                await logi_log_channel.send(
-                content=f"{interaction.user.mention} granted {logi_role.mention} to {member.mention}"
+                await logi_log_channel.send(content=f"{interaction.user.mention}"\
+                    f" granted {logi_role.mention} to {member.mention}"
                 )
                 await interaction.response.send_message(ephemeral=True,
                     content=f"Granted {member.mention} the {logi_role.mention} role")
@@ -84,8 +84,8 @@ class LogiCog(commands.Cog):
                 logger.info(f"{interaction.user.nick}|{interaction.user.id}"\
                     f" removing roles to {member.nick}|{member.id}")
                 await member.remove_roles(logi_role)
-                await logi_log_channel.send(
-                content=f"{interaction.user.mention} removed {logi_role.mention} to {member.mention}"
+                await logi_log_channel.send(content=f"{interaction.user.mention}"\
+                    f" removed {logi_role.mention} to {member.mention}"
                 )
                 await interaction.response.send_message(ephemeral=True,
                     content=f"Removed {member.mention} from  the {logi_role.mention} role")
