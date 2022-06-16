@@ -21,8 +21,8 @@ class LogiCog(commands.Cog):
         self.bot = bot
 
     @nextcord.slash_command(
-        name="logi",
-        description="Grant someone logi roles.",
+        name="logistics",
+        description="Grant someone logistic roles.",
         guild_ids=cogGuild,
     )
 
@@ -63,7 +63,8 @@ class LogiCog(commands.Cog):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.add_roles(logi_role)
-                await interaction.send(ephemeral=True, content=f"Granted {member.nick} the {logi_role.name} role")
+                await interaction.send(ephemeral=True,
+                    content=f"Granted {member.nick} the {logi_role.name} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
@@ -77,7 +78,8 @@ class LogiCog(commands.Cog):
             try:
                 logger.info(f"Adding roles to {member.nick}|{member.id}")
                 await member.remove_roles(logi_role)
-                await interaction.send(ephemeral=True, content=f"Removed {member.nick} from the {logi_role.name} role")
+                await interaction.send(ephemeral=True,
+                    content=f"Removed {member.nick} from the {logi_role.name} role")
             except Forbidden as error:
                 print(f"no permissions: {error}")
                 logger.error(f"Incorrect permissions adding roles to "
