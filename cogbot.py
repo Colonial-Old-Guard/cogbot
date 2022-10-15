@@ -40,7 +40,7 @@ logging.basicConfig(
 )
 
 
-# set sql logs to the same value for debuging
+# set sql logs to the same value for debugging
 logging.getLogger('sqlalchemy.engine').setLevel(loglevel)
 logging.getLogger('sqlalchemy.pool').setLevel(loglevel)
 
@@ -82,7 +82,7 @@ intents = nextcord.Intents(messages=True, guilds=True)
 # pylint: disable=assigning-non-slot
 intents.members = True
 # bot = nextcord.Client()
-bot = commands.Bot(Intents=intents)
+bot = commands.Bot(intents=intents)
 
 
 # pylint: disable=too-few-public-methods
@@ -104,6 +104,36 @@ class MembersInfo(Base):
     last_promotion_datetime = Column(DateTime(timezone=True))
 
 # pylint: disable=too-few-public-methods
+class MembersList(Base):
+    """
+    Members list class for DB
+    """
+    __tablename__ = 'members_list'
+
+    id = Column(BigInteger, primary_key=True)
+    discord_id = Column(BigInteger, unique=True, nullable=False)
+    current_revision = Column(BigInteger, unique=True)
+
+# pylint: disable=too-few-public-methods
+class MembersDetails(Base):
+    """
+    Members details class for DB
+    """
+    __tablename__ = 'members_details'
+
+    member_info_id = Column(BigInteger, ForeignKey('members_list.id'), primary_key=True)
+    revision = Column(BigInteger, primary_key=True)
+    discord_discriminator = Column(String, nullable=False)
+    steam_64 = Column(BigInteger)
+    steam_name = Column(String)
+    discord_joined_datetime = Column(DateTime(timezone=True))
+    is_verified = Column(Boolean, nullable=False)
+    last_modified_datetime = Column(DateTime(timezone=True))
+    last_modified_by = Column(String, nullable=False)
+    last_modified_by_id = Column(Integer, nullable=False)
+
+
+# pylint: disable=too-few-public-methods
 class Ranks(Base):
     """
     Ranks class for DB
@@ -117,11 +147,11 @@ class Ranks(Base):
     auto_promotion_enabled = Column(Boolean, nullable=False)
 
 # pylint: disable=too-few-public-methods
-class PromotionRecomendation(Base):
+class PromotionRecommendation(Base):
     """
     Promotion class for DB
     """
-    __tablename__ = 'promotion_recomendation'
+    __tablename__ = 'promotion_recommendation'
 
     member_discord_id = Column(BigInteger, ForeignKey('member_info.discord_id'), primary_key=True)
     officer_discord_id = Column(BigInteger, ForeignKey('member_info.discord_id'), primary_key=True)
@@ -146,7 +176,10 @@ async def get_steam_profile(steam_64):
     """
     logger.debug("Running get_steam_profile with id: %s", steam_64)
     params = {"key": steam_token, "steamids": steam_64}
-    resp = requests.get(STEAM_PROFILE_URL, headers=headers, params=params)
+    resp = requests.get(STEAM_PROFILE_URL, headers=headers, params=params, timeout=10)
+    if not resp.status_code == requests.codes['ok']:
+        logger.debug("HTTP error: %s", resp)
+        return None
     logger.debug("Request result: %s", resp)
     result = json.loads(resp.content)
     logger.debug("Request result after json conversion: %s", result)
@@ -158,7 +191,10 @@ async def get_steam_id(vanity):
     """
     logger.debug("Running get_steam_id with vanity: %s", vanity)
     params = {"key": steam_token, "vanityurl": vanity}
-    resp = requests.get(VANITY_URL, headers=headers, params=params)
+    resp = requests.get(VANITY_URL, headers=headers, params=params, timeout=10)
+    if not resp.status_code == requests.codes['ok']:
+        logger.debug("HTTP error: %s", resp)
+        return None
     logger.debug("Request result: %s", resp)
     result = json.loads(resp.content)
     logger.debug("Request result after json conversion: %s", result)
@@ -168,14 +204,21 @@ async def get_steam_plus_name(steam_type: type, steam_id_or_vanity: str):
     """
     Returns the full steam profile of what you send in?
     """
-    logger.debug("Running get_steam_plus_name")
+    logger.debug("Running get_steam_plus_name with type (%s) and id (%s)",
+        steam_type, steam_id_or_vanity)
     if steam_type == "id":
         steam_id = await get_steam_id(steam_id_or_vanity)
+        if steam_id is None:
+            return None
         # make sure to only pass the steam64 id into the get_steam_profile function...
         result = await get_steam_profile(steam_id["response"]["steamid"])
+        if result is None:
+            return None
         return result
     if steam_type == "profiles":
         result = await get_steam_profile(steam_id_or_vanity)
+        if result is None:
+            return None
         return result
 
 def is_cog(roles: list):
@@ -186,6 +229,15 @@ def is_cog(roles: list):
     for role in roles:
         roles_int.append(role.id)
     return bool(926172865097781299 in roles_int)
+
+def is_in_role(member, role: int):
+    """
+    Returns true if the member has the role.
+    """
+    self_roles_int = []
+    for self_role in member.roles:
+        self_roles_int.append(self_role.id)
+    return bool(int(role) in self_roles_int)
 
 def is_logi_lead(member):
     """

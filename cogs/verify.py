@@ -77,14 +77,16 @@ class VerifyCog(commands.Cog):
                             logger.debug(f"Found URL: {url}")
                             urls.append((url, message.author.id))
                     else:
-                        logger.debug(f"IsBot: {message.author.bot}, \
-                            message author: {message.author.name}")
+                        logger.debug(f"IsBot: {message.author.bot}, "
+                            f"message author: {message.author.name}")
 
 
                 logger.debug(f"Checking for Steam URLs in array {urls}")
                 for url in urls:
-                    if url[0].startswith("https://steamcommunity.com/id/") \
-                        or url[0].startswith("https://steamcommunity.com/profiles/"):
+                    if url[0].startswith("https://steamcommunity.com/id/")\
+                        or url[0].startswith("https://steamcommunity.com/profiles/")\
+                        or url[0].startswith("http://steamcommunity.com/id/")\
+                        or url[0].startswith("http://steamcommunity.com/profiles/"):
 
                         logger.debug(f"Found steam URL: {url[0]}")
 
@@ -100,10 +102,15 @@ class VerifyCog(commands.Cog):
                         steam_profile_type = parsed_url.path.rstrip("/").split("/")[1]
                         steam_profile_id = parsed_url.path.rstrip("/").split("/")[2]
 
-                        logger.debug(f"get_steam_plus_name({steam_profile_type},\
-                             {steam_profile_id})")
+                        logger.debug(f"get_steam_plus_name({steam_profile_type},"
+                             f"{steam_profile_id})")
                         full_steam_profile = await \
                             get_steam_plus_name(steam_profile_type, steam_profile_id)
+
+                        if full_steam_profile is None:
+                            await interaction.send(ephemeral=True,content=
+                            "Steam is either not responding, or with nonsense. Try again later")
+                            break
 
                         if full_steam_profile["response"]["players"][0]["steamid"] \
                             and full_steam_profile["response"]["players"][0]["personaname"]:
@@ -134,6 +141,8 @@ class VerifyCog(commands.Cog):
                     role_foxhole_verified = interaction.guild.get_role(925531185554276403)
                     role_foxhole = interaction.guild.get_role(925531141128196107)
                     role_medals_break = interaction.guild.get_role(986376132637106207)
+                    role_activity_break = interaction.guild.get_role(989899109190217758)
+                    role_active = interaction.guild.get_role(990345561225981962)
                     promotion_recruits_channel = \
                         interaction.guild.get_channel(971763222937993236)
                     rank_and_steam = \
@@ -164,7 +173,9 @@ class VerifyCog(commands.Cog):
                                 role_cog,
                                 role_foxhole_verified,
                                 role_foxhole,
-                                role_medals_break
+                                role_medals_break,
+                                role_activity_break,
+                                role_active
                                 )
                         except Forbidden as error:
                             print(f"no permissions: {error}")
@@ -192,7 +203,11 @@ class VerifyCog(commands.Cog):
                         # verified by <@{interaction.user.id}>")
                         await promotion_recruits_channel.send(embed=embed)
                         await interaction.send(content=
-                        f"Welcome <@{member.id}>|`{member.id}` you are have been verified by "
+                        f"Welcome <@{member.id}>|`{member.id}` verified by "
+                        f"<@{interaction.user.id}>|`{interaction.user.id}`!")
+                        logger.info(
+                        f"<@{member.id}>|`{member.id}` verified by "
+
                         f"<@{interaction.user.id}>|`{interaction.user.id}`!")
 
                     except IntegrityError as error:
