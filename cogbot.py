@@ -17,7 +17,8 @@ from nextcord.ext import commands
 
 # sqlalchemy
 from sqlalchemy import create_engine, Column, String, Text, Integer, \
-  BigInteger, Boolean, DateTime, func, select
+  BigInteger, Boolean, DateTime, func, select, insert, literal_column,\
+    Identity, update
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm import sessionmaker
@@ -110,7 +111,7 @@ class MembersList(Base):
     """
     __tablename__ = 'members_list'
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, Identity(start=1000, cycle=True), primary_key=True)
     discord_id = Column(BigInteger, unique=True, nullable=False)
     current_revision = Column(BigInteger, unique=True)
 
@@ -121,17 +122,44 @@ class MembersDetails(Base):
     """
     __tablename__ = 'members_details'
 
-    member_info_id = Column(BigInteger, ForeignKey('members_list.id'), primary_key=True)
-    revision = Column(BigInteger, primary_key=True)
+    member_info_id = Column(BigInteger, ForeignKey('members_list.id',
+        ondelete="CASCADE"), primary_key=True)
+    revision = Column(BigInteger, Identity(start=101, cycle=True), primary_key=True)
     discord_discriminator = Column(String, nullable=False)
     steam_64 = Column(BigInteger)
     steam_name = Column(String)
     discord_joined_datetime = Column(DateTime(timezone=True))
     is_verified = Column(Boolean, nullable=False)
-    last_modified_datetime = Column(DateTime(timezone=True))
+    last_modified_datetime = Column(DateTime(timezone=True),
+        nullable=False, server_default=func.now())
     last_modified_by = Column(String, nullable=False)
-    last_modified_by_id = Column(Integer, nullable=False)
+    last_modified_by_id = Column(BigInteger, nullable=False)
+    regiment = Column(BigInteger, ForeignKey('regiments.id'))
+    role = Column(BigInteger, ForeignKey('roles.id'))
 
+# pylint: disable=too-few-public-methods
+class Regiments(Base):
+    """
+    Regiments table for DB
+    """
+    __tablename__ = 'regiments'
+
+    id = Column(BigInteger,Identity(start=101, cycle=True), ForeignKey('members_list.id',
+        ondelete="CASCADE"), primary_key=True)
+    tag = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    affiliation = Column(String, nullable=False)
+
+# pylint: disable=too-few-public-methods
+class Roles(Base):
+    """
+    Roles table for DB
+    """
+    __tablename__ = 'roles'
+
+    id = Column(BigInteger,Identity(start=101, cycle=True), ForeignKey('members_list.id',
+        ondelete="CASCADE"), primary_key=True)
+    name = Column(String, nullable=False)
 
 # pylint: disable=too-few-public-methods
 class Ranks(Base):
@@ -268,6 +296,107 @@ async def get_all_member_info():
     except NoResultFound as error:
         logger.error("No results found: %s", error)
         return None
+
+async def is_in_member_list(discord_id):
+    """
+    Returns if in memberlist table on the DB
+    """
+    result = {}
+    statement = select(MembersList, MembersDetails).filter(
+        MembersList.id==MembersDetails.member_info_id,
+    MembersList.current_revision==MembersDetails.revision).where(
+        MembersList.discord_id==discord_id)
+    logger.debug("Checking if user has valid record in members_list: %s", statement)
+    try:
+        result = db.execute(statement).all()
+        logger.debug("Result from is_in_member_list: %s", result)
+        return result
+    except NoResultFound as error:
+        logger.error("No results found: %s", error)
+        return None
+
+async def update_member_verification(verification_type :list, member :nextcord.Member,
+    interaction :nextcord.Interaction, steam=None):
+    """
+    Add or renew member verification
+    """
+
+    if_in_member_list = await is_in_member_list(member.id)
+    discriminator_name_list = [interaction.user.name+"#"+interaction.user.discriminator,
+        member.name+"#"+member.discriminator]
+
+    logger.debug("Running update_member_verification, invoked by %s|%s for user %s|%s",
+        interaction.user.id,discriminator_name_list[0],member.id,discriminator_name_list[1])
+    if steam is None:
+        logger.debug("No steam value provided")
+        steam = [None, None]
+
+    # If in memberslist, then apply new stuff (verify/retire/unretire)
+    if if_in_member_list and verification_type=='cog':
+        # print(f"is in list: {if_in_member_list}")
+        logger.debug("%s|%s is in members_list",member.id,discriminator_name_list[1])
+
+        for member_list, member_details in if_in_member_list:
+            logger.debug("SQL results: {%s}{%s}",member_list,member_details)
+
+
+            if member_details.is_verified:
+                await interaction.send(ephemeral=True, content=
+                f"<@{member.id}> is already verified.")
+                logger.debug("%s|%s is already verified",member.id,discriminator_name_list[1])
+                return None
+            statement_add_details = insert(MembersDetails).values(
+                member_info_id=member_list.id, discord_discriminator=discriminator_name_list[1],
+                discord_joined_datetime=member.joined_at, is_verified=True,
+                last_modified_by=discriminator_name_list[0],
+                last_modified_by_id=interaction.user.id,
+                steam_name=steam[1], steam_64=steam[0]
+            ).returning(literal_column('*'))
+
+            for add_details in db.execute(statement_add_details):
+                logger.debug("SQL add details: %s", add_details)
+                statement_update_list = update(MembersList).where(MembersList.discord_id==member.id
+                ).values(current_revision=add_details.revision)
+
+            try:
+                db.execute(statement_update_list)
+                logger.debug("SQL commit result: %s", db.commit())
+                return 1
+            except NoResultFound as error:
+                db.rollback()
+                logger.error("No results found: %s", error)
+                return None
+
+    else:
+        logger.debug("%s|%s is not in members_list, adding now",
+            member.id,discriminator_name_list[1])
+        statement_add_list = insert(MembersList).values(
+            discord_id=member.id).returning(literal_column('*'))
+
+        for add_list in db.execute(statement_add_list):
+            logger.debug("SQL add list: %s", add_list)
+            statement_add_details = insert(MembersDetails).values(
+                member_info_id=add_list.id, discord_discriminator=discriminator_name_list[1],
+                discord_joined_datetime=member.joined_at, is_verified=True,
+                last_modified_by=discriminator_name_list[0],
+                last_modified_by_id=interaction.user.id,
+                steam_name=steam[1], steam_64=steam[0]
+            ).returning(literal_column('*'))
+
+        for add_details in db.execute(statement_add_details):
+            logger.debug("SQL add details: %s", add_details)
+            statement_update_list = update(MembersList).where(MembersList.discord_id==member.id
+            ).values(current_revision=add_details.revision)
+
+        try:
+            db.execute(statement_update_list)
+            result = db.commit()
+            logger.debug("SQL commit result: %s", result)
+            return 1
+        except NoResultFound as error:
+            db.rollback()
+            logger.error("No results found: %s", error)
+            return None
 
 # Hello world
 @bot.event

@@ -4,20 +4,34 @@
 
 from urllib.parse import urlparse
 import re
+from datetime import datetime
 
 # nextcord stuff
 import nextcord
 from nextcord.ext import commands
 from nextcord import Integration, SlashOption, Forbidden, HTTPException
 
-# sqlalchemy
-from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
-# from sqlalchemy.orm.exc import NoResultFound
-
 # the bot bits
 # pylint: disable=import-error
-from cogbot import logger, cogGuild, db, MembersInfo, get_steam_plus_name
+from cogbot import logger, cogGuild, get_steam_plus_name, update_member_verification, is_in_role
+
+
+def custom_embed_thing(title:str, timestamp:datetime, description:str, footer_text:str, image_url=None, colour=None):
+    """
+    returns embed
+    """
+    embed = nextcord.Embed(
+        title=title,
+        timestamp=timestamp)
+    embed.set_footer(text=footer_text)
+    embed.description=description
+    if colour:
+        embed.colour=colour
+    if image_url:
+        if image_url.avatar:
+            if image_url.avatar.url:
+                embed.set_thumbnail(url=image_url.avatar.url)
+    return embed
 
 if __name__ == "__main__":
     # pylint: disable=pointless-statement
@@ -38,7 +52,7 @@ class VerifyCog(commands.Cog):
         description="Verify a member",
         guild_ids=cogGuild,
     )
-    # pylint: disable=too-many-locals,no-self-use,too-many-statements,too-many-branches
+# pylint: disable=too-many-locals,too-many-statements,too-many-branches
     async def verify(
         self,
         interaction: Integration,
@@ -116,105 +130,83 @@ class VerifyCog(commands.Cog):
                             and full_steam_profile["response"]["players"][0]["personaname"]:
                             break
 
+                db_update = None
+
                 if len(full_steam_profile) == 0 or full_steam_profile is None:
-                    await interaction.send(ephemeral=True, \
-                        content="No steam URLs (or valid ones) have been found.")
+                    # await interaction.send(ephemeral=True, \
+                    db_update = await update_member_verification(member=member,
+                        verification_type=verification_type, interaction=interaction)
 
-                # hopefully this if stops most crashes :S
-                elif full_steam_profile["response"]["players"][0]["steamid"] \
-                    and full_steam_profile["response"]["players"][0]["personaname"] and member:
-                    db.add(MembersInfo(
-                        discord_id = member.id,
-                        discord_discriminator = str(member),
-                        steam_64 = full_steam_profile["response"]["players"][0]["steamid"],
-                        name = full_steam_profile["response"]["players"][0]["personaname"],
-                        rank_id = 12,
-                        joined_datetime = member.joined_at,
-                        verified = True,
-                        verified_datetime = func.now(),
-                        last_promotion_datetime = func.now()
-                    ))
+                else:
+                    db_update = await update_member_verification(member=member,
+                        verification_type=verification_type, interaction=interaction,
+                        steam=[full_steam_profile["response"]["players"][0]["steamid"],
+                        full_steam_profile["response"]["players"][0]["personaname"]])
 
-                    # if someone can find a way to avoid doing this get_role
-                    # and get_channel BS this can get cut down.
-                    role_cog = interaction.guild.get_role(926172865097781299)
-                    role_foxhole_verified = interaction.guild.get_role(925531185554276403)
-                    role_foxhole = interaction.guild.get_role(925531141128196107)
-                    role_medals_break = interaction.guild.get_role(986376132637106207)
-                    role_activity_break = interaction.guild.get_role(989899109190217758)
-                    role_active = interaction.guild.get_role(990345561225981962)
-                    promotion_recruits_channel = \
-                        interaction.guild.get_channel(971763222937993236)
-                    rank_and_steam = \
-                        full_steam_profile["response"]["players"][0]["personaname"]
+                if db_update == 1:
+                    await interaction.response.send_message(ephemeral=True,
+                    content="Added/updated user verification!"
+                    "Trying to add roles and update name.")
+
+                    steam_name = full_steam_profile["response"]["players"][0]["personaname"]
+                    steam_64 = full_steam_profile["response"]["players"][0]["steamid"]
+
+                    missing_roles = []
+                    cog_roles = [926172865097781299,925531185554276403,925531141128196107,
+                    986376132637106207,989899109190217758,990345561225981962]
+
+                    for role in cog_roles:
+                        if not is_in_role(member, role):
+                            missing_roles.append(interaction.guild.get_role(role))
 
                     try:
-                        # this way around we don't fuck with discord stuff if
-                        # the DB has an issue, or the user is already in it.
-                        result = db.commit()
-                        logger.info(f"Added {member.name}|{member.id} to DB: {result}")
+                        if missing_roles:
+                            for missing_role in missing_roles:
+                                await member.add_roles(missing_role, reason='49 testing')
+                                logger.info("adding %s to %s",missing_role.name, member.name)
+                    except Forbidden as error:
+                        logger.error(f"Incorrect permissions changing roles of "
+                            f"{member.name}|{member.id}: {error}")
+                    except HTTPException as error:
+                        logger.error(f"HTTP error updating roles of "
+                            f"{member.name}|{member.id}: {error}")
 
-                        try:
-                            logger.info(f"Changing nick of "
-                                f"{member.name}|{member.id} to {rank_and_steam}")
-                            await member.edit(nick=rank_and_steam)
-                        except Forbidden as error:
-                            print(f"no permissions: {error}")
-                            logger.error(f"Incorrect permissions changing nick of "
-                                f"{member.name}|{member.id}: {error}")
-                        except HTTPException as error:
-                            print(f"Other error: {error}")
-                            logger.error(f"HTTP error updating nick of "
-                                f"{member.name}|{member.id}: {error}")
+                    try:
+                        logger.info(f"Changing nick of "
+                            f"{member.name}|{member.id} to {steam_name}")
+                        await member.edit(nick=steam_name)
+                    except Forbidden as error:
+                        print(f"no permissions: {error}")
+                        logger.error(f"Incorrect permissions changing nick of "
+                            f"{member.name}|{member.id}: {error}")
+                    except HTTPException as error:
+                        print(f"Other error: {error}")
+                        logger.error(f"HTTP error updating nick of "
+                            f"{member.name}|{member.id}: {error}")
 
-                        try:
-                            logger.info(f"Adding roles to {member.nick}|{member.id}")
-                            await member.add_roles(
-                                role_cog,
-                                role_foxhole_verified,
-                                role_foxhole,
-                                role_medals_break,
-                                role_activity_break,
-                                role_active
-                                )
-                        except Forbidden as error:
-                            print(f"no permissions: {error}")
-                            logger.error(f"Incorrect permissions adding roles to "
-                                f"{member.name}|{member.id}: {error}")
-                        except HTTPException as error:
-                            print(f"Other error: {error}")
-                            logger.error(f"HTTP error adding roles to "
-                                f"{member.name}|{member.id}: {error}")
+                    await interaction.channel.send(embed=custom_embed_thing(
+                        title='COG verification', timestamp=interaction.created_at,
+                        footer_text=interaction.user.name, description=f'Welcome to COG '
+                        f'{member.mention}!\n\nPlease make sure to have read a'
+						f'nd understood the <#976906183849951302>, and have assigned you'
+						f'rself a timezone and any other roles you want from '
+						f'<#925697546125467698>\n\n> **Verified as** COG\n> **User** '
+						f'{member.name}#{member.discriminator} '
+						f'({member.mention})\n> **ID** `{member.id}`', colour=0x516c4b
+                    ))
 
-
-
-                        embed = nextcord.Embed(
-                            title="New member!",
-                            timestamp=interaction.created_at,
-                            colour=nextcord.Color.dark_green())
-                        embed.add_field(name="New Member", value=member.mention)
-                        embed.add_field(name="New Id", value=member.id)
-                        embed.add_field(name="Officer Verifying", value=interaction.user.mention)
-                        embed.add_field(name="Officer Id", value=interaction.user.id)
-
-                        # now = datetime.datetime.utcnow()
-                        # await promotion_recruits_channel.send(f"<@{member.id}> {now.date()} \
-                        # {now.date() + datetime.timedelta(days=7)} \
-                        # verified by <@{interaction.user.id}>")
-                        await promotion_recruits_channel.send(embed=embed)
-                        await interaction.send(content=
-                        f"Welcome <@{member.id}>|`{member.id}` verified by "
-                        f"<@{interaction.user.id}>|`{interaction.user.id}`!")
-                        logger.info(
-                        f"<@{member.id}>|`{member.id}` verified by "
-
-                        f"<@{interaction.user.id}>|`{interaction.user.id}`!")
-
-                    except IntegrityError as error:
-                        db.rollback()
-                        logger.error(f"Error adding {member.id} to db: {error}")
-                        await interaction.send(ephemeral=True,
-                            content=f"Error adding {member.name} to db: {error.orig}")
+                    promotion_recruits_channel = interaction.guild.get_channel(971763222937993236)
+                    await promotion_recruits_channel.send(embed=custom_embed_thing(
+                        title='COG verification', timestamp=interaction.created_at,
+                        footer_text=interaction.user.name, description=f'> **Verified as** COG\n> '
+                        f'**User** {member.name}#{member.discriminator} ({member.mention}'
+                        f')\n> **Discord ID** `{member.id}`\n> **Steam name** '
+                        f'`{steam_name}`\n> **Steam ID** `{steam_64}`\n> **Steam profile** https://'
+                        f'steamcommunity.com/profiles/{steam_64}\n> **Verified by** '
+                        f'{interaction.user.name}#{interaction.user.discriminator} '
+                        f'({interaction.user.mention})', colour=0x516c4b,
+                        image_url=member
+                    ))
 
 
             # Ally verification goes here
