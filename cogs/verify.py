@@ -53,7 +53,7 @@ class VerifyCog(commands.Cog):
         description="Verify a member",
         guild_ids=cogGuild,
     )
-# pylint: disable=too-many-locals,too-many-statements,too-many-branches
+# pylint: disable=too-many-locals,too-many-statements,too-many-branches,no-self-use
     async def verify(
         self,
         interaction: Integration,
