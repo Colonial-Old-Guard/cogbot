@@ -15,8 +15,9 @@ from nextcord import Integration, SlashOption, Forbidden, HTTPException
 # pylint: disable=import-error
 from cogbot import logger, cogGuild, get_steam_plus_name, update_member_verification, is_in_role
 
-
-def custom_embed_thing(title:str, timestamp:datetime, description:str, footer_text:str, image_url=None, colour=None):
+# pylint: disable=too-many-arguments
+def custom_embed_thing(title:str, timestamp:datetime, description:str,
+    footer_text:str, image_url=None, colour=None):
     """
     returns embed
     """
