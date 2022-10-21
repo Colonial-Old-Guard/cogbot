@@ -7,7 +7,7 @@ from nextcord import Integration, SlashOption, Forbidden, HTTPException
 
 # the bot bits
 # pylint: disable=import-error
-from cogbot import logger, cogGuild, get_member_info, is_in_role
+from cogbot import logger, cogGuild, is_in_role
 
 if __name__ == '__main__':
     # pylint: disable=pointless-statement
@@ -125,8 +125,8 @@ class RetirementCog(commands.Cog):
             await interaction.response.send_message(
             content=f"Retiring all members of {role.mention}")
 
-            for member in role.members:
-                if await retire_member(interaction=interaction, member=member,
+            for role_member in role.members:
+                if await retire_member(interaction=interaction, member=role_member,
                     roles=verified_only_roles):
                     await interaction.channel.send(
                         content=f'Retired all members of {role.mention}')
