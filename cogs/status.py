@@ -55,7 +55,7 @@ class StatusCog(commands.Cog):
     )
 
     # pylint: disable=no-self-use,too-many-branches
-    async def retire(
+    async def status(
         self,
         interaction: Integration,
         member: nextcord.Member = SlashOption(
