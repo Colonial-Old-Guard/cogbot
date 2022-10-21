@@ -398,6 +398,38 @@ async def update_member_verification(verification_type :list, member :nextcord.M
             logger.error("No results found: %s", error)
             return None
 
+async def get_member_info(member):
+    """
+    Get current member info, see also get_member_historic_info
+    """
+
+
+    member_id = member
+    logger.debug('Given %s as input', member)
+    try:
+        if member.id:
+            member_id = member.id
+            logger.debug('Updating member_id to %s', member_id)
+    except AttributeError:
+        member_id = member
+
+    statement_get_details = select(MembersList, MembersDetails).filter(
+        MembersList.id==MembersDetails.member_info_id,
+        MembersList.current_revision==MembersDetails.revision)\
+        .where(MembersList.discord_id==member_id)
+
+
+    try:
+        # result = db.execute(statement_get_details).scalar_one_or_none()
+        result = db.execute(statement_get_details)
+        db.commit()
+        logger.debug('get_member_info result: %s', result)
+        return result
+    except NoResultFound as error:
+        db.rollback()
+        logger.error("No results found: %s", error)
+        return None
+
 # Hello world
 @bot.event
 async def on_ready():
