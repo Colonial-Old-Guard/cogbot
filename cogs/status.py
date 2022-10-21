@@ -49,6 +49,7 @@ class StatusCog(commands.Cog):
         guild_ids=cogGuild,
     )
 
+    # pylint: disable=no-self-use
     async def retire(
         self,
         interaction: Integration,
