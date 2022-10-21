@@ -163,7 +163,7 @@ class VerifyCog(commands.Cog):
                     try:
                         if missing_roles:
                             for missing_role in missing_roles:
-                                await member.add_roles(missing_role, reason='49 testing')
+                                await member.add_roles(missing_role, reason='Verification')
                                 logger.info("adding %s to %s",missing_role.name, member.name)
                     except Forbidden as error:
                         logger.error(f"Incorrect permissions changing roles of "
