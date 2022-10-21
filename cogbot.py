@@ -398,7 +398,7 @@ async def update_member_verification(verification_type :list, member :nextcord.M
             logger.error("No results found: %s", error)
             return None
 
-async def get_member_info(member):
+async def get_member_info(member, all_history:bool = False):
     """
     Get current member info, see also get_member_historic_info
     """
@@ -413,10 +413,18 @@ async def get_member_info(member):
     except AttributeError:
         member_id = member
 
-    statement_get_details = select(MembersList, MembersDetails).filter(
-        MembersList.id==MembersDetails.member_info_id,
-        MembersList.current_revision==MembersDetails.revision)\
-        .where(MembersList.discord_id==member_id)
+    statement_get_details = []
+
+    if all_history:
+        statement_get_details = select(MembersList, MembersDetails).filter(
+            MembersList.id==MembersDetails.member_info_id)\
+            .where(MembersList.discord_id==member_id).order_by(
+                MembersDetails.last_modified_datetime.desc())
+    elif not all_history:
+        statement_get_details = select(MembersList, MembersDetails).filter(
+            MembersList.id==MembersDetails.member_info_id,
+            MembersList.current_revision==MembersDetails.revision)\
+            .where(MembersList.discord_id==member_id)
 
 
     try:

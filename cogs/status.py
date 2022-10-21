@@ -19,9 +19,10 @@ if __name__ == '__main__':
 
 # pylint: disable=too-many-arguments
 def custom_embed_thing(title:str, timestamp:datetime, description:str,
-    footer_text:str, image_url=None, colour=None):
+    footer_text:str, image_url=None, colour=None, fields=None):
     """
     returns embed
+    fields must be a list, 0 title, 1 value, 2 inline bool
     """
     embed = nextcord.Embed(
         title=title,
@@ -34,6 +35,10 @@ def custom_embed_thing(title:str, timestamp:datetime, description:str,
         if image_url.avatar:
             if image_url.avatar.url:
                 embed.set_thumbnail(url=image_url.avatar.url)
+
+    if fields:
+        for field in fields:
+            embed.add_field(name=field[0],value=field[1],inline=field[2])
     return embed
 
 class StatusCog(commands.Cog):
@@ -49,7 +54,7 @@ class StatusCog(commands.Cog):
         guild_ids=cogGuild,
     )
 
-    # pylint: disable=no-self-use
+    # pylint: disable=no-self-use,too-many-branches
     async def retire(
         self,
         interaction: Integration,
@@ -105,8 +110,9 @@ class StatusCog(commands.Cog):
 
 
             await interaction.response.send_message(ephemeral=True,
-            embed=custom_embed_thing(title='Verification Status', timestamp=interaction.created_at,
-            description=f"> **User** {result[0][1].discord_discriminator} (<@"
+            embed=custom_embed_thing(title='Verification Status - Current',
+            timestamp=interaction.created_at, description=f"> **User** "
+            f"{result[0][1].discord_discriminator} (<@"
             f"{result[0][0].discord_id}>)\n> **Discord ID** `{result[0][0].discord_id}`\n> **Steam"
             f" name** {result[0][1].steam_name}\n> **Steam ID** `{result[0][1].steam_64}`\n> **Ste"
             f"am Profile** https://steamcommunity.com/profiles/{result[0][1].steam_64}\n> **Verifi"
@@ -115,8 +121,40 @@ class StatusCog(commands.Cog):
             f" by** `{result[0][1].last_modified_by}` (<@{result[0][1].last_modified_by_id}>)",
             footer_text=interaction.user.name))
 
-            # await interaction.response.send_message(ephemeral=True,
-            # content=f"Returns: {result}")
+        elif (member or discord_id) and show_history:
+            logger.info('%s|%s running command with history as %s',
+            interaction.user.id,interaction.user.name,show_history)
+
+            result = []
+
+            if member:
+                for members_list, members_details in await get_member_info(member,
+                all_history=True):
+                    result.append([members_list, members_details])
+            elif discord_id:
+                for members_list, members_details in await get_member_info(discord_id,
+                all_history=True):
+                    result.append([members_list, members_details])
+
+            cunt = []
+            for shit in result:
+
+                cunt.append([f"<t:{int(time.mktime(shit[1].last_modified_datetime.timetuple()))}"
+                f":f>", f"> **Status**is verified status: {shit[1].is_verified}\n> **Updated by** "
+                f"<@{shit[1].last_modified_by_id}> `{shit[1].last_modified_by_id}`", False])
+
+            await interaction.response.send_message(ephemeral=True,
+            embed=custom_embed_thing(title='Verification Status - All',
+            timestamp=interaction.created_at, description=f"> **User** "
+            f"{result[0][1].discord_discriminator} (<@{result[0][0].discord_id}>)\n"
+            f"> **Discord ID** `{result[0][0].discord_id}`\n"
+            f"> **Steam name** {result[0][1].steam_name}\n> **Steam ID** `{result[0][1].steam_64}`"
+            f"\n> **Steam Profile** https://steamcommunity.com/profiles/{result[0][1].steam_64}\n"
+            f"> **Verification Status** {result[0][1].is_verified} <t:"
+            f"{int(time.mktime(result[0][1].last_modified_datetime.timetuple()))}:f>\n"
+            f"> **Verified by** `{result[0][1].last_modified_by}` (<@"
+            f"{result[0][1].last_modified_by_id}>)",
+            footer_text=interaction.user.name, fields=cunt))
 
 
 def setup(bot):
