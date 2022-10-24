@@ -470,5 +470,30 @@ for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')
 
+@bot.event
+async def on_member_update(before, after):
+    """
+    Monitors member updates, and triggers stuff
+    """
+    # 6 hour power role added to a user
+    if not is_in_role(before, 990455799765667860) and is_in_role(after, 990455799765667860):
+
+        # Check if member has the recruit role
+        if is_in_role(after, 1034206227728699522):
+            recruit_role = after.guild.get_role(1034206227728699522)
+            promotion_recruits_channel = after.guild.get_channel(971763222937993236)
+            try:
+                await after.remove_roles(recruit_role, reason='6hourpower role has been reached!')
+                logger.info('%s(%s) 6hourpower role has been reached! Removing recruit role',
+                    after.name, after.id)
+                await promotion_recruits_channel.send(content=f"{after.mention} has gotten the "
+                    f"<@&990455799765667860> role, so the {recruit_role.mention} has been removed")
+            except Forbidden as error:
+                logger.error("Incorrect permissions changing roles of "
+                    "%s|%s: %s", after.name, after.id, error)
+            except HTTPException as error:
+                logger.error("HTTP error updating roles of %s|%s: %s", after.name, after.id, error)
+
+
 # runs mah bot
 bot.run(os.getenv('DISCORD_TOKEN'))
