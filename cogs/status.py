@@ -54,7 +54,7 @@ class StatusCog(commands.Cog):
         guild_ids=cogGuild,
     )
 
-    # pylint: disable=no-self-use,too-many-branches
+    # pylint: disable=too-many-branches
     async def status(
         self,
         interaction: Integration,
