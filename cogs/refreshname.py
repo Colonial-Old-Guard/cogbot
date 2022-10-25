@@ -95,6 +95,7 @@ class RefreshNameCog(commands.Cog):
         description='Refresh your name from your steam, or if High Command, someone else.',
         guild_ids=cogGuild,
     )
+    # pylint: disable=too-many-branches
     async def refresh_name(
         self,
         interaction: Integration,
