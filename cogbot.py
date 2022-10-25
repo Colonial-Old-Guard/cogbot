@@ -13,6 +13,7 @@ from requests.structures import CaseInsensitiveDict
 
 # nextcord stuff
 import nextcord
+from nextcord import Forbidden, HTTPException
 from nextcord.ext import commands
 
 # sqlalchemy
@@ -488,11 +489,9 @@ async def on_member_update(before, after):
                     after.name, after.id)
                 await promotion_recruits_channel.send(content=f"{after.mention} has gotten the "
                     f"<@&990455799765667860> role, so the {recruit_role.mention} has been removed")
-            # pylint: disable=undefined-variable
             except Forbidden as error:
                 logger.error("Incorrect permissions changing roles of "
                     "%s|%s: %s", after.name, after.id, error)
-            # pylint: disable=undefined-variable
             except HTTPException as error:
                 logger.error("HTTP error updating roles of %s|%s: %s", after.name, after.id, error)
 
