@@ -512,7 +512,7 @@ async def update_steam_db(interaction: nextcord.Interaction, member:nextcord.Mem
                 db.execute(statement_update_list)
                 result = db.commit()
                 logger.debug("SQL commit result: %s", result)
-                return 1
+                return 0
             except NoResultFound as error:
                 db.rollback()
                 logger.error("No results found: %s", error)
