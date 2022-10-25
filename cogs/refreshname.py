@@ -59,7 +59,7 @@ async def get_current_steam_name(member: nextcord.Member, interaction :nextcord.
             member.name, member.id, steam_profile[1])
 
         try:
-            if not update_steam_db(interaction=interaction, member=member):
+            if not await update_steam_db(interaction=interaction, member=member):
                 raise ValueError
             logger.info('%s(%s) has been updated in the DB.', member.name, member.id)
 
@@ -115,26 +115,26 @@ class RefreshNameCog(commands.Cog):
             logger.info('%s(%s) is going to refresh %s(%s)', interaction.user.name,
                 interaction.user.id, member.name, member.id)
 
-            update_steam_name_result = get_current_steam_name(
+            update_steam_name_result = await get_current_steam_name(
                 interaction=interaction, member=member)
 
             if update_steam_name_result is None:
-                interaction.send(ephemeral=True,
+                await interaction.send(ephemeral=True,
                     content=f'{member.mention} is already synced with their steam name.')
             elif update_steam_name_result == 0:
-                interaction.send(ephemeral=True,
+                await interaction.send(ephemeral=True,
                     content=f'{member.mention} has been synced with their steam name.')
             elif update_steam_name_result == 1:
-                interaction.send(ephemeral=True,
+                await interaction.send(ephemeral=True,
                     content=f'{member.mention} doesn\'t have a linked steam account.')
             elif update_steam_name_result == 2:
-                interaction.send(ephemeral=True,
+                await interaction.send(ephemeral=True,
                     content=f'{member.mention} is not in the database.')
             elif update_steam_name_result == 3:
-                interaction.send(ephemeral=True,
+                await interaction.send(ephemeral=True,
                     content=f'{member.mention} Steam error. Try again later.')
             elif update_steam_name_result == 4:
-                interaction.send(ephemeral=True,
+                await interaction.send(ephemeral=True,
                     content=f'{member.mention} error updating the database.')
 
         if member and not is_in_role(interaction.user.roles, 925530598737596507):
@@ -143,27 +143,27 @@ class RefreshNameCog(commands.Cog):
             await interaction.send(ephemeral=True,
                 content='Only <@&925530598737596507> can refresh other people\'s names.')
 
-        update_steam_name_result = get_current_steam_name(
+        update_steam_name_result = await get_current_steam_name(
             interaction=interaction, member=interaction.user)
 
         if update_steam_name_result is None:
             print(update_steam_name_result)
-            interaction.send(ephemeral=True, content=
+            await interaction.send(ephemeral=True, content=
                 f'{interaction.user.mention} your already synced with your steam name.')
         elif update_steam_name_result == 0:
-            interaction.send(ephemeral=True, content=
+            await interaction.send(ephemeral=True, content=
                 f'{interaction.user.mention} your name has been synced with your steam name.')
         elif update_steam_name_result == 1:
-            interaction.send(ephemeral=True,
+            await interaction.send(ephemeral=True,
                 content=f'{interaction.user.mention} you don\'t have a linked steam account.')
         elif update_steam_name_result == 2:
-            interaction.send(ephemeral=True,
+            await interaction.send(ephemeral=True,
                 content=f'{interaction.user.mention} you aren\'t in the database.')
         elif update_steam_name_result == 3:
-            interaction.send(ephemeral=True,
+            await interaction.send(ephemeral=True,
                 content=f'{interaction.user.mention} Steam error. Try again later.')
         elif update_steam_name_result == 4:
-            interaction.send(ephemeral=True,
+            await interaction.send(ephemeral=True,
                 content=f'{interaction.user.mention} there was an error updating the database.')
 
 
