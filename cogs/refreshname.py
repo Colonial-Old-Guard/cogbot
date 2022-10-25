@@ -59,7 +59,8 @@ async def get_current_steam_name(member: nextcord.Member, interaction :nextcord.
             member.name, member.id, steam_profile[1])
 
         try:
-            if not await update_steam_db(interaction=interaction, member=member):
+            if not await update_steam_db(
+                interaction=interaction, member=member, steam=steam_profile):
                 raise ValueError
             logger.info('%s(%s) has been updated in the DB.', member.name, member.id)
 
