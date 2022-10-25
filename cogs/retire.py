@@ -60,7 +60,6 @@ class RetirementCog(commands.Cog):
         description='Retire yourself, a member, or a role. (depending on your permissions)',
         guild_ids=cogGuild,
     )
-    # pylint: disable=no-self-use
     async def retire(
         self,
         interaction: Integration,
