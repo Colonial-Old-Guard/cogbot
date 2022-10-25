@@ -252,7 +252,7 @@ async def get_steam_plus_name(steam_type: type, steam_id_or_vanity: str):
 
 def is_cog(roles: list):
     """
-    Returns true if in COG, feed me the member.roles snowflake.
+    Returns True if the member.roles snowflake contains the COG role (926172865097781299).
     """
     roles_int = []
     for role in roles:
@@ -261,7 +261,7 @@ def is_cog(roles: list):
 
 def is_in_role(member, role: int):
     """
-    Returns true if the member has the role.
+    Returns True if the member.roles snowflake contains the role submitted.
     """
     self_roles_int = []
     for self_role in member.roles:
