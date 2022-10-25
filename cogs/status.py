@@ -53,8 +53,6 @@ class StatusCog(commands.Cog):
         description='Get a members status',
         guild_ids=cogGuild,
     )
-
-    # pylint: disable=no-self-use,too-many-branches
     async def status(
         self,
         interaction: Integration,
