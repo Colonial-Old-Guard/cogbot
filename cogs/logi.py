@@ -26,7 +26,6 @@ class LogiCog(commands.Cog):
         guild_ids=cogGuild,
     )
 
-    # pylint: disable=no-self-use
     async def fuck(
         self,
         interaction: Integration,
