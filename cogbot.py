@@ -439,6 +439,85 @@ async def get_member_info(member, all_history:bool = False):
         logger.error("No results found: %s", error)
         return None
 
+async def retire_member_db(interaction: nextcord.Interaction, member:nextcord.Member):
+    """
+    Retires the member passed in on the DB by setting is_verified True and and who retired them.
+    """
+
+    discord_discriminators = [
+        member.name+"#"+member.discriminator,
+        interaction.user.name+"#"+interaction.user.discriminator]
+
+    if_in_member_list = await get_member_info(member.id)
+
+    if if_in_member_list:
+        for members_list, members_details in if_in_member_list:
+
+            if members_details.is_verified is False:
+                return 2
+
+            statement_insert_list = insert(MembersDetails).values(
+                member_info_id=members_list.id, discord_discriminator=discord_discriminators[0],
+                discord_joined_datetime=member.joined_at, is_verified=False,
+                last_modified_by=discord_discriminators[1],
+                last_modified_by_id=interaction.user.id,
+                steam_name=members_details.steam_name, steam_64=members_details.steam_64,
+            ).returning(literal_column('*'))
+
+            for update_list_revision in db.execute(statement_insert_list):
+                statement_update_list = update(MembersList).where(MembersList.discord_id==member.id
+                    ).values(current_revision=update_list_revision.revision)
+
+            try:
+                db.execute(statement_update_list)
+                result = db.commit()
+                logger.debug("SQL commit result: %s", result)
+                return 1
+            except NoResultFound as error:
+                db.rollback()
+                logger.error("No results found: %s", error)
+                return None
+
+async def update_steam_db(interaction: nextcord.Interaction, member:nextcord.Member, steam):
+    """
+    updates the steam details in the DB\n
+    steam [steam_64,steam_name]
+    """
+
+    discord_discriminators = [
+        member.name+"#"+member.discriminator,
+        interaction.user.name+"#"+interaction.user.discriminator]
+
+    logger.debug('Discord names %s', discord_discriminators)
+
+    if_in_member_list = await get_member_info(member.id)
+    logger.debug('if_in_member_list: %s',if_in_member_list)
+    if if_in_member_list:
+        for members_list, members_details in if_in_member_list:
+            logger.debug('members_list, members_details: %s, %s',members_list, members_details)
+
+            statement_insert_list = insert(MembersDetails).values(
+                member_info_id=members_list.id, discord_discriminator=discord_discriminators[0],
+                discord_joined_datetime=member.joined_at, is_verified=members_details.is_verified,
+                last_modified_by=discord_discriminators[1],
+                last_modified_by_id=interaction.user.id,
+                steam_name=steam[1], steam_64=steam[0],
+            ).returning(literal_column('*'))
+
+            for update_list_revision in db.execute(statement_insert_list):
+                statement_update_list = update(MembersList).where(MembersList.discord_id==member.id
+                    ).values(current_revision=update_list_revision.revision)
+
+            try:
+                db.execute(statement_update_list)
+                result = db.commit()
+                logger.debug("SQL commit result: %s", result)
+                return 1
+            except NoResultFound as error:
+                db.rollback()
+                logger.error("No results found: %s", error)
+                return None
+
 # Hello world
 @bot.event
 async def on_ready():
