@@ -7,7 +7,7 @@ from nextcord import Integration, SlashOption, Forbidden, HTTPException
 
 # the bot bits
 # pylint: disable=import-error
-from cogbot import logger, cogGuild, is_in_role
+from cogbot import logger, cogGuild, is_in_role, retire_member_db
 
 if __name__ == '__main__':
     # pylint: disable=pointless-statement
@@ -19,7 +19,6 @@ async def retire_member(interaction, member, roles):
     """
     missing_roles = []
     retired_role = interaction.guild.get_role(925780963231940688)
-    # member = interaction.user
     for role in roles:
         if is_in_role(interaction.user, role):
             missing_roles.append(interaction.guild.get_role(role))
@@ -95,10 +94,12 @@ class RetirementCog(commands.Cog):
             await interaction.response.send_message(ephemeral=True,
             content="You are going to retire.")
 
-            if await retire_member(interaction=interaction, member=interaction.user,
-                roles=verified_only_roles):
-                await interaction.channel.send(
-                    content=f'Retired {interaction.user.mention}')
+            if await retire_member_db(interaction=interaction, member=interaction.user):
+
+                if await retire_member(interaction=interaction, member=interaction.user,
+                    roles=verified_only_roles):
+                    await interaction.channel.send(
+                        content=f'Retired {interaction.user.mention}')
 
 
         elif member and role:
@@ -113,10 +114,11 @@ class RetirementCog(commands.Cog):
             await interaction.response.send_message(ephemeral=True,
             content=f"Retiring {member.mention}")
 
-            if await retire_member(interaction=interaction, member=member,
-                roles=verified_only_roles):
-                await interaction.channel.send(
-                    content=f'Retired {member.mention}')
+            if await retire_member_db(interaction=interaction, member=member):
+                if await retire_member(interaction=interaction, member=member,
+                    roles=verified_only_roles):
+                    await interaction.channel.send(
+                        content=f'Retired {member.mention}')
 
         elif role:
             logger.info('%s|%s is retiring the role %s|%s', interaction.user.id,
@@ -125,10 +127,11 @@ class RetirementCog(commands.Cog):
             content=f"Retiring all members of {role.mention}")
 
             for role_member in role.members:
-                if await retire_member(interaction=interaction, member=role_member,
-                    roles=verified_only_roles):
-                    await interaction.channel.send(
-                        content=f'Retired all members of {role.mention}')
+                if await retire_member_db(interaction=interaction, member=role_member):
+                    if await retire_member(interaction=interaction, member=role_member,
+                        roles=verified_only_roles):
+                        await interaction.channel.send(
+                            content=f'Retired all members of {role.mention}')
 
 
 
