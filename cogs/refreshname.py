@@ -21,6 +21,7 @@ async def get_current_steam_name(member: nextcord.Member, interaction :nextcord.
     Returns 2 if user missing from DB.\n
     Returns 3 if steam error.\n
     Returns 4 if error updating the DB with new steam name.\n
+    Returns 5 if error updating discord name\n
     Returns None if Steam_64 is found, and matches Discord.
     """
 
@@ -36,8 +37,10 @@ async def get_current_steam_name(member: nextcord.Member, interaction :nextcord.
     steam_64 = None
 
     for members_list, members_details in db_member:
-        logger.debug('%s(%s) results: ', member.name, member.id, members_list, members_details)
+        logger.debug('%s(%s) results: %s, %s',
+            member.name, member.id, members_list, members_details)
         steam_64 = members_details.steam_64
+        logger.info('%s(%s) steam_64: %s', member.name, member.id, steam_64)
 
     if not steam_64:
         logger.error('%s(%s) missing steam_64 in the database', member.name, member.id)
@@ -72,9 +75,11 @@ async def get_current_steam_name(member: nextcord.Member, interaction :nextcord.
             except Forbidden as error:
                 logger.error("Missing permissions to change nickname of %s(%s): %s",
                     member.name, member.id, error)
+                return 5
             except HTTPException as error:
                 logger.error("HTTP error updating nickname of %s(%s): %s",
                     member.name, member.id, error)
+                return 5
 
         except ValueError as error:
             logger.error('%s(%s) steam error getting details for steam_64: %s',
@@ -137,6 +142,9 @@ class RefreshNameCog(commands.Cog):
             elif update_steam_name_result == 4:
                 await interaction.send(ephemeral=True,
                     content=f'{member.mention} error updating the database.')
+            elif update_steam_name_result == 5:
+                await interaction.send(ephemeral=True,content=
+                    f'{member.mention} error updating nick in discord. Check bot permissions.')
 
         if member and not is_in_role(interaction.user.roles, 925530598737596507):
             logger.info('%s(%s) tried to refresh %s(%s)', interaction.user.name,
@@ -166,6 +174,12 @@ class RefreshNameCog(commands.Cog):
         elif update_steam_name_result == 4:
             await interaction.send(ephemeral=True,
                 content=f'{interaction.user.mention} there was an error updating the database.')
+        elif update_steam_name_result == 5:
+            await interaction.send(ephemeral=True,
+                content=f'{interaction.user.mention} error updating your nick.')
+        else:
+            await interaction.send(ephemeral=True,
+                content=f'{interaction.user.mention} something went wrong...')
 
 
 def setup(bot):
