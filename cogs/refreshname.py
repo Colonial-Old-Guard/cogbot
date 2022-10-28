@@ -1,4 +1,4 @@
-"""Retire COG """
+""" Retire COG """
 
 # nextcord stuff
 import nextcord
@@ -11,7 +11,7 @@ from nextcord import Integration, SlashOption, Forbidden, HTTPException
 from cogbot import is_in_role, logger, cogGuild, update_steam_db, get_member_info, \
         get_steam_profile
 
-
+# pylint: disable=too-many-return-statements
 async def get_current_steam_name(member: nextcord.Member, interaction :nextcord.Interaction):
     """
     Gets current steam name using steam_64 from the DB.\n
