@@ -131,8 +131,9 @@ class RetirementCog(commands.Cog):
                     if await retire_member(interaction=interaction, member=role_member,
                         roles=verified_only_roles):
                         await interaction.channel.send(
-                            content=f'Retired all members of {role.mention}')
-
+                            content=f'Retired {role_member.mention} from {role.mention}')
+            await interaction.channel.send(
+                content=f'Retired all members of {role.mention}')
 
 
 
