@@ -560,9 +560,16 @@ async def on_member_update(before, after):
 
         # Check if member has the recruit role
         if is_in_role(after, 1034206227728699522):
+            if is_in_role(after, 980563823226404895):
+                logi_noob = True
             recruit_role = after.guild.get_role(1034206227728699522)
+            logi_role = after.guild.get_role(925720078027223070)
+            logi_noob_role = after.guild.get_role(980563823226404895)
             promotion_recruits_channel = after.guild.get_channel(971763222937993236)
             try:
+                if logi_noob:
+                    await after.add_roles(logi_role, reason='Recruit promotion!')
+                    await after.remove_roles(logi_noob_role, reason='Recruit promotion!')
                 await after.remove_roles(recruit_role, reason='6hourpower role has been reached!')
                 logger.info('%s(%s) 6hourpower role has been reached! Removing recruit role',
                     after.name, after.id)
