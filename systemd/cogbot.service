@@ -6,6 +6,7 @@ After=network.target
 
 [Service]
 Type=simple
+EnvironmentFile=/opt/cogbot/.env
 #RestartSec=2s
 #Restart=always
 #User=cogbot
