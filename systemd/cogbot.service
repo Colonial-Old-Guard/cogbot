@@ -1,0 +1,24 @@
+[Unit]
+Description=COG BOT for discord shit
+After=syslog.target
+After=network.target
+
+
+[Service]
+Type=simple
+#RestartSec=2s
+#Restart=always
+#User=cogbot
+#Group=cogbot
+ExecStart=/opt/cogbot/cogbot/cogbot_venv/bin/python3.9 /opt/cogbot/cogbot/cogbot.py
+
+WorkingDirectory=/opt/cogbot/cogbot
+
+NoNewPrivileges=true
+PrivateDevices=yes
+ReadOnlyDirectories=/opt/cogbot/cogbot
+ReadWriteDirectories=/var/log/cogbot
+
+
+[Install]
+WantedBy=multi-user.target
