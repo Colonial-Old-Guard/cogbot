@@ -87,7 +87,7 @@ class VerifyCog(commands.Cog):
                     if message.author.bot is False:
                         for url in re.findall(
                             # pylint: disable=line-too-long,anomalous-backslash-in-string
-                            'http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))\w{0,}.\w{0,}\/\w{0,}\/\w{0,}', \
+                            r'http[s]?:\/\/steamcommunity.com\/(?:profiles|id)\/.+?(?=\/|?|$)', \
                                  message.content):
                             logger.debug(f"Found URL: {url}")
                             urls.append((url, message.author.id))
