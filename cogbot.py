@@ -1,32 +1,45 @@
 """ COG bot for managing promotion stuff in the discord """
 
-import os
-import logging
 import datetime
 
 # steam / rest api stuff
 # import datetime
 import json
-import requests
-from requests.structures import CaseInsensitiveDict
-
+import logging
+import os
 
 # nextcord stuff
 import nextcord
-from nextcord import Forbidden, HTTPException
-from nextcord.ext import commands
-
-# sqlalchemy
-from sqlalchemy import create_engine, Column, String, Text, Integer, \
-  BigInteger, Boolean, DateTime, func, select, insert, literal_column,\
-    Identity, update
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql.schema import ForeignKey
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
+import requests
 
 # dotenv
 from dotenv import load_dotenv
+from nextcord import Forbidden, HTTPException
+from nextcord.ext import commands
+from requests.structures import CaseInsensitiveDict
+
+# sqlalchemy
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    DateTime,
+    Identity,
+    Integer,
+    String,
+    Text,
+    create_engine,
+    func,
+    insert,
+    literal_column,
+    select,
+    update,
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql.schema import ForeignKey
+
 load_dotenv()
 
 
@@ -550,36 +563,49 @@ for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')
 
-@bot.event
-async def on_member_update(before, after):
-    """
-    Monitors member updates, and triggers stuff
-    """
-    # 6 hour power role added to a user
-    if not is_in_role(before, 990455799765667860) and is_in_role(after, 990455799765667860):
+# @bot.event
+# async def on_member_update(before, after):
+#     """
+#     Monitors member updates, and triggers stuff
+#     """
+#     # 6 hour power role added to a user
+#     if not is_in_role(before, 990455799765667860) and is_in_role(after, 990455799765667860):
 
-        # Check if member has the recruit role
-        if is_in_role(after, 1034206227728699522):
-            if is_in_role(after, 980563823226404895):
-                logi_noob = True
-            recruit_role = after.guild.get_role(1034206227728699522)
-            logi_role = after.guild.get_role(925720078027223070)
-            logi_noob_role = after.guild.get_role(980563823226404895)
-            promotion_recruits_channel = after.guild.get_channel(971763222937993236)
-            try:
-                if logi_noob:
-                    await after.add_roles(logi_role, reason='Recruit promotion!')
-                    await after.remove_roles(logi_noob_role, reason='Recruit promotion!')
-                await after.remove_roles(recruit_role, reason='6hourpower role has been reached!')
-                logger.info('%s(%s) 6hourpower role has been reached! Removing recruit role',
-                    after.name, after.id)
-                await promotion_recruits_channel.send(content=f"{after.mention} has gotten the "
-                    f"<@&990455799765667860> role, so the {recruit_role.mention} has been removed")
-            except Forbidden as error:
-                logger.error("Incorrect permissions changing roles of "
-                    "%s|%s: %s", after.name, after.id, error)
-            except HTTPException as error:
-                logger.error("HTTP error updating roles of %s|%s: %s", after.name, after.id, error)
+#         # Check if member has the recruit role
+#         if is_in_role(after, 1034206227728699522):
+#             if is_in_role(after, 980563823226404895):
+#                 logi_noob = True
+#             recruit_role = after.guild.get_role(1034206227728699522)
+#             logi_role = after.guild.get_role(925720078027223070)
+#             logi_noob_role = after.guild.get_role(980563823226404895)
+#             promotion_recruits_channel = after.guild.get_channel(971763222937993236)
+#             try:
+#                 if logi_noob:
+#                     await after.add_roles(logi_role, reason='Recruit promotion!')
+#                     await after.remove_roles(logi_noob_role, reason='Recruit promotion!')
+#                 await after.remove_roles(recruit_role, reason='6hourpower role has been reached!')
+#                 logger.info('%s(%s) 6hourpower role has been reached! Removing recruit role',
+#                     after.name, after.id)
+#                 await promotion_recruits_channel.send(content=f"{after.mention} has gotten the "
+#                     f"<@&990455799765667860> role, so the {recruit_role.mention} has been removed")
+#             except Forbidden as error:
+#                 logger.error("Incorrect permissions changing roles of "
+#                     "%s|%s: %s", after.name, after.id, error)
+#             except HTTPException as error:
+#                 logger.error("HTTP error updating roles of %s|%s: %s", after.name, after.id, error)
+
+
+# runs mah bot
+bot.run(os.getenv('DISCORD_TOKEN'))
+#                 logger.info('%s(%s) 6hourpower role has been reached! Removing recruit role',
+#                     after.name, after.id)
+#                 await promotion_recruits_channel.send(content=f"{after.mention} has gotten the "
+#                     f"<@&990455799765667860> role, so the {recruit_role.mention} has been removed")
+#             except Forbidden as error:
+#                 logger.error("Incorrect permissions changing roles of "
+#                     "%s|%s: %s", after.name, after.id, error)
+#             except HTTPException as error:
+#                 logger.error("HTTP error updating roles of %s|%s: %s", after.name, after.id, error)
 
 
 # runs mah bot
